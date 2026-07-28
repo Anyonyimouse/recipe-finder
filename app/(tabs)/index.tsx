@@ -1,98 +1,406 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import { AlignJustify, ChefHat, Moon, Search, Sun, Sunset, UtensilsCrossed, X } from 'lucide-react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { CuisineDrawerModal } from '../../src/components/ui/CuisineDrawerModal';
+import { IngredientModal } from '../../src/components/ui/IngredientModal';
+import { RecipeCard } from '../../src/components/ui/RecipeCard';
+import { useFavorites } from '../../src/features/favorite/presentation/hooks/useFavorites';
+import { useIngredients } from '../../src/features/ingredient/presentation/hooks/useIngredients';
+import { useRecipeSearch } from '../../src/features/recipe/presentation/hooks/useRecipeSearch';
+import { useSync } from '../../src/features/sync/presentation/hooks/useSync';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.72;
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return { text: 'Good Morning', icon: 'sun' };
+  if (hour < 17) return { text: 'Good Afternoon', icon: 'sunset' };
+  return { text: 'Good Evening', icon: 'moon' };
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+const MEAL_TYPES = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Merienda'];
+
+export default function RecipeFinderScreen() {
+  const router = useRouter();
+  const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
+  const [isCuisineDrawerOpen, setIsCuisineDrawerOpen] = useState(false);
+  const [selectedCuisine, setSelectedCuisine] = useState<string>('All');
+  const [selectedMealType, setSelectedMealType] = useState<string>('All');
+  const [maxCalories, setMaxCalories] = useState<number>(0);
+  const [showSearch, setShowSearch] = useState(false);
+
+  const greeting = useMemo(() => getGreeting(), []);
+
+  const {
+    ingredients,
+    selectedIds,
+    searchQuery,
+    setSearchQuery,
+    toggleSelectIngredient,
+    clearSelection,
+  } = useIngredients();
+
+  const { recipes, isLoading: isRecipeLoading } = useRecipeSearch(
+    searchQuery,
+    selectedIds,
+    selectedCuisine,
+    selectedMealType,
+    maxCalories
+  );
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { triggerSync } = useSync();
+
+  useEffect(() => {
+    triggerSync().catch(() => { });
+  }, [triggerSync]);
+
+  const handleSelectCuisineMealFilter = (cuisine: string, mealType: string) => {
+    setSelectedCuisine(cuisine);
+    setSelectedMealType(mealType);
+  };
+
+  const hasCuisineFilter = selectedCuisine !== 'All' || selectedMealType !== 'All' || maxCalories > 0;
+  const featuredRecipes = useMemo(() => recipes.slice(0, 5), [recipes]);
+  const popularRecipes = useMemo(() => recipes.slice(5), [recipes]);
+
+  const GreetingIcon = () => {
+    if (greeting.icon === 'sun') return <Sun size={14} color="#F59E0B" strokeWidth={2} />;
+    if (greeting.icon === 'sunset') return <Sunset size={14} color="#F97316" strokeWidth={2} />;
+    return <Moon size={14} color="#6366F1" strokeWidth={2} />;
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+
+      <FlatList
+        data={selectedIds.length > 0 || searchQuery ? recipes : popularRecipes}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}
+        columnWrapperStyle={{ gap: 12 }}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View>
+            {/* ── Header ── */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, paddingTop: 8, paddingBottom: 20 }}>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                  <GreetingIcon />
+                  <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginLeft: 5 }}>
+                    {greeting.text}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 26, fontWeight: '800', color: '#111827', letterSpacing: -0.5 }}>
+                  BingCart
+                </Text>
+              </View>
+
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+
+                {/* 🔍 Search — toggles the inline search bar */}
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                    setShowSearch((v) => !v);
+                  }}
+                  style={{
+                    width: 42, height: 42, borderRadius: 14,
+                    backgroundColor: showSearch ? '#0D9488' : '#FFFFFF',
+                    borderWidth: 1, borderColor: showSearch ? '#0D9488' : '#E5E7EB',
+                    alignItems: 'center', justifyContent: 'center',
+                    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+                  }}
+                >
+                  <Search size={18} color={showSearch ? '#FFFFFF' : '#374151'} strokeWidth={2} />
+                </Pressable>
+
+                {/* ☰ Cuisine Menu — opens the cuisine/meal-type drawer */}
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
+                    setIsCuisineDrawerOpen(true);
+                  }}
+                  style={{
+                    width: 42, height: 42, borderRadius: 14,
+                    backgroundColor: hasCuisineFilter ? '#0D9488' : '#FFFFFF',
+                    borderWidth: 1, borderColor: hasCuisineFilter ? '#0D9488' : '#E5E7EB',
+                    alignItems: 'center', justifyContent: 'center',
+                    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+                  }}
+                >
+                  <AlignJustify size={18} color={hasCuisineFilter ? '#FFFFFF' : '#374151'} strokeWidth={2} />
+                </Pressable>
+
+              </View>
+            </View>
+
+            {/* ── Inline Search Bar (collapsible) ── */}
+            {showSearch && (
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 4, marginBottom: 16, marginHorizontal: 4, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 }}>
+                <Search size={16} color="#9CA3AF" strokeWidth={2} />
+                <TextInput
+                  placeholder="Search recipes..."
+                  placeholderTextColor="#9CA3AF"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoFocus
+                  style={{ flex: 1, color: '#111827', fontWeight: '500', marginLeft: 10, fontSize: 14, paddingVertical: 12 }}
+                />
+                {searchQuery !== '' && (
+                  <Pressable
+                    onPress={() => setSearchQuery('')}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <X size={16} color="#9CA3AF" strokeWidth={2.5} />
+                  </Pressable>
+                )}
+              </View>
+            )}
+
+            {/* ── Featured Section ── */}
+            {featuredRecipes.length > 0 && !searchQuery && selectedIds.length === 0 && (
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827', marginHorizontal: 4, marginBottom: 14 }}>
+                  Featured
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingLeft: 4, paddingRight: 16, gap: 12 }}
+                >
+                  {featuredRecipes.map((recipe) => (
+                    <Pressable
+                      key={recipe.id}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                        router.push({ pathname: '/recipe/[id]', params: { id: recipe.id } } as any);
+                      }}
+                      style={{ width: FEATURED_CARD_WIDTH, backgroundColor: '#0F766E', borderRadius: 20, overflow: 'hidden', padding: 20, paddingBottom: 16, shadowColor: '#0D9488', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 }}
+                    >
+                      <View style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                      <View style={{ position: 'absolute', bottom: -10, right: 20, width: 70, height: 70, borderRadius: 35, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+
+                      <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 40 }}>
+                        <ChefHat size={22} color="#FFFFFF" strokeWidth={1.75} />
+                      </View>
+
+                      <Text style={{ fontSize: 17, fontWeight: '800', color: '#FFFFFF', marginBottom: 10, lineHeight: 22 }} numberOfLines={2}>
+                        {recipe.title}
+                      </Text>
+
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+                          <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', fontWeight: '500' }}>
+                            ⏱ {recipe.prepTime + recipe.cookTime} Min
+                          </Text>
+                        </View>
+                        {recipe.cuisine && (
+                          <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: '500' }}>
+                            {recipe.cuisine}
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* ── Meal Type Category Pills ── */}
+            {!searchQuery && selectedIds.length === 0 && (
+              <View style={{ marginBottom: 24 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 4, marginBottom: 14 }}>
+                  <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827' }}>Category</Text>
+                  {/* "Cuisines" opens the cuisine drawer — visually labelled correctly */}
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                      setIsCuisineDrawerOpen(true);
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, backgroundColor: hasCuisineFilter ? '#F0FDF9' : 'transparent', borderWidth: hasCuisineFilter ? 1 : 0, borderColor: '#99F6E4' }}
+                  >
+                    <AlignJustify size={12} color="#0D9488" strokeWidth={2.5} />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#0D9488' }}>
+                      {hasCuisineFilter ? selectedCuisine.replace(' Food', '') : 'Cuisines'}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingLeft: 4, paddingRight: 16, gap: 10 }}
+                >
+                  {MEAL_TYPES.map((type) => {
+                    const isActive = type === 'All'
+                      ? selectedMealType === 'All'
+                      : selectedMealType === type;
+                    return (
+                      <Pressable
+                        key={type}
+                        onPress={() => {
+                          Haptics.selectionAsync().catch(() => { });
+                          if (type === 'All') {
+                            setSelectedMealType('All');
+                            setSelectedCuisine('All');
+                          } else {
+                            setSelectedMealType(type);
+                          }
+                        }}
+                        style={{
+                          paddingHorizontal: 22, paddingVertical: 10,
+                          borderRadius: 50,
+                          backgroundColor: isActive ? '#0D9488' : '#FFFFFF',
+                          borderWidth: 1, borderColor: isActive ? '#0D9488' : '#E5E7EB',
+                          shadowColor: isActive ? '#0D9488' : '#000',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: isActive ? 0.25 : 0.04,
+                          shadowRadius: 6, elevation: isActive ? 4 : 1,
+                        }}
+                      >
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: isActive ? '#FFFFFF' : '#4B5563' }}>
+                          {type}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* ── Active ingredients info strip ── */}
+            {selectedIds.length > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 4, marginBottom: 12 }}>
+                <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>
+                  {selectedIds.length} ingredient{selectedIds.length > 1 ? 's' : ''} selected
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                    clearSelection();
+                  }}
+                >
+                  <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '600' }}>Clear</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* ── Recipes Section Header ── */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 4, marginBottom: 14 }}>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827' }}>
+                {selectedIds.length > 0 ? 'Matching Recipes' : searchQuery ? 'Search Results' : 'Popular Recipes'}
+              </Text>
+              {/* Pantry filter — opens ingredient selector */}
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                  setIsIngredientModalOpen(true);
+                }}
+                style={{
+                  flexDirection: 'row', alignItems: 'center',
+                  backgroundColor: selectedIds.length > 0 ? '#0D9488' : '#F3F4F6',
+                  paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50,
+                }}
+              >
+                <UtensilsCrossed size={12} color={selectedIds.length > 0 ? '#FFFFFF' : '#6B7280'} strokeWidth={2.5} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: selectedIds.length > 0 ? '#FFFFFF' : '#6B7280', marginLeft: 5 }}>
+                  {selectedIds.length > 0 ? `${selectedIds.length} Ingredients` : 'My Pantry'}
+                </Text>
+              </Pressable>
+            </View>
+
+            {isRecipeLoading && (
+              <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <ActivityIndicator size="large" color="#0D9488" />
+                <Text style={{ color: '#9CA3AF', fontSize: 13, fontWeight: '500', marginTop: 10 }}>Finding recipes...</Text>
+              </View>
+            )}
+          </View>
+        }
+        renderItem={({ item }) => (
+          <View style={{ flex: 1 }}>
+            <RecipeCard
+              recipe={item}
+              isFavorite={isFavorite(item.id)}
+              onPress={(id) => router.push({ pathname: '/recipe/[id]', params: { id } } as any)}
+              onToggleFavorite={toggleFavorite}
+            />
+          </View>
+        )}
+        ListEmptyComponent={
+          !isRecipeLoading ? (
+            <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <Search size={24} color="#9CA3AF" strokeWidth={1.75} />
+              </View>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#374151', marginBottom: 6 }}>No recipes found</Text>
+              <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', lineHeight: 20 }}>
+                Try different ingredients or clear your selection to see more recipes.
+              </Text>
+            </View>
+          ) : null
+        }
+      />
+
+      {/* ── Floating Action Button — My Pantry (opens ingredient selector) ── */}
+      <View style={{ position: 'absolute', bottom: 20, alignSelf: 'center', alignItems: 'center' }}>
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
+            setIsIngredientModalOpen(true);
+          }}
+          style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0F172A', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 10 }}
+        >
+          <ChefHat size={24} color="#FFFFFF" strokeWidth={1.75} />
+        </Pressable>
+        {selectedIds.length > 0 && (
+          <View style={{ position: 'absolute', top: -4, right: -4, width: 20, height: 20, borderRadius: 10, backgroundColor: '#0D9488', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#F9FAFB' }}>
+            <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>{selectedIds.length}</Text>
+          </View>
+        )}
+        <Text style={{ fontSize: 10, fontWeight: '600', color: '#6B7280', marginTop: 4, letterSpacing: 0.3 }}>
+          My Pantry
+        </Text>
+      </View>
+
+      {/* Ingredient Selector Modal */}
+      <IngredientModal
+        visible={isIngredientModalOpen}
+        ingredients={ingredients}
+        selectedIds={selectedIds}
+        onToggleIngredient={toggleSelectIngredient}
+        onClearSelection={clearSelection}
+        onClose={() => setIsIngredientModalOpen(false)}
+      />
+
+      {/* Cuisine & Meal Type Drawer */}
+      <CuisineDrawerModal
+        visible={isCuisineDrawerOpen}
+        selectedCuisine={selectedCuisine}
+        selectedMealType={selectedMealType}
+        maxCalories={maxCalories}
+        onSelectFilter={handleSelectCuisineMealFilter}
+        onSelectMaxCalories={setMaxCalories}
+        onClose={() => setIsCuisineDrawerOpen(false)}
+      />
+    </SafeAreaView>
+  );
+}
