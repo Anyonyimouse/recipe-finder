@@ -1,13 +1,13 @@
 import { SQLiteDatabase } from 'expo-sqlite';
-import filipinoData from './filipino_dataset.json';
+import { categories, ingredients, recipes } from './dataset';
 
 export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
   const syncCheck = await db.getFirstAsync<{ value: string }>(
     "SELECT value FROM sync_metadata WHERE key = 'database_version'"
   );
 
-  // Skip if already upgraded to version 17
-  if (syncCheck && syncCheck.value === '17') {
+  // Skip if already upgraded to version 19
+  if (syncCheck && syncCheck.value === '19') {
     return;
   }
 
@@ -32,24 +32,24 @@ export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
     await db.execAsync('DELETE FROM recipe_ingredients;');
     await db.execAsync('DELETE FROM recipe_steps;');
 
-    // 2. Seed 100% Authentic Filipino Categories
-    for (const cat of filipinoData.categories) {
+    // 2. Seed Authentic Categories
+    for (const cat of categories) {
       await db.runAsync(
         'INSERT OR REPLACE INTO categories (id, name, icon) VALUES (?, ?, ?)',
         [cat.id, cat.name, cat.icon]
       );
     }
 
-    // 3. Seed 100% Authentic Filipino Ingredients
-    for (const ing of filipinoData.ingredients) {
+    // 3. Seed Authentic Ingredients
+    for (const ing of ingredients) {
       await db.runAsync(
         'INSERT OR REPLACE INTO ingredients (id, name, category, image_url) VALUES (?, ?, ?, ?)',
         [ing.id, ing.name, ing.category, ing.imageUrl]
       );
     }
 
-    // 4. Seed Curated Unique Non-Redundant Filipino Recipes
-    for (const recipe of filipinoData.recipes) {
+    // 4. Seed Curated Unique Non-Redundant Recipes
+    for (const recipe of recipes) {
       await db.runAsync(
         `INSERT OR REPLACE INTO recipes 
          (id, title, description, image_url, prep_time, cook_time, servings, difficulty, category_id, cuisine, meal_type, calories, created_at, updated_at) 
@@ -64,8 +64,8 @@ export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
           recipe.servings,
           recipe.difficulty,
           recipe.categoryId,
-          (recipe as any).cuisine || 'Filipino Food',
-          (recipe as any).mealType || 'Lunch',
+          recipe.cuisine || 'Filipino Food',
+          recipe.mealType || 'Lunch',
           recipe.calories,
           recipe.createdAt,
           recipe.updatedAt,
@@ -91,16 +91,16 @@ export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
       }
     }
 
-    // 5. Update Sync Metadata
+    // 5. Update Sync Metadata to Version 19
     await db.runAsync(
-      "INSERT OR REPLACE INTO sync_metadata (key, value) VALUES ('database_version', '17')"
+      "INSERT OR REPLACE INTO sync_metadata (key, value) VALUES ('database_version', '19')"
     );
     await db.runAsync(
       "INSERT OR REPLACE INTO sync_metadata (key, value) VALUES ('last_sync', ?)",
       [new Date().toISOString()]
     );
     await db.runAsync(
-      `INSERT OR REPLACE INTO sync_metadata (key, value) VALUES ('recipe_count', '${filipinoData.recipes.length}')`
+      `INSERT OR REPLACE INTO sync_metadata (key, value) VALUES ('recipe_count', '${recipes.length}')`
     );
   });
 

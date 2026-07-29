@@ -113,8 +113,9 @@ export class SQLiteRecipeRepository implements RecipeRepository {
 
     // Filter by cuisine
     if (cuisine && cuisine !== 'All') {
-      whereClauses.push('r.cuisine = ?');
-      params.push(cuisine);
+      const cleanCuisine = cuisine.replace(' Food', '').trim();
+      whereClauses.push('(r.cuisine = ? OR r.cuisine LIKE ?)');
+      params.push(cuisine, `%${cleanCuisine}%`);
     }
 
     // Filter by meal_type

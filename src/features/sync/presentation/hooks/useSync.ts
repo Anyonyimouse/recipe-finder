@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SyncStatus } from '../../../../types/sync';
-import { SupabaseSyncRepository } from '../../data/repositories/SupabaseSyncRepository';
+import { SQLiteSyncRepository } from '../../data/repositories/SQLiteSyncRepository';
 
-const repo = new SupabaseSyncRepository();
+const repo = new SQLiteSyncRepository();
 
 export function useSync() {
   const [status, setStatus] = useState<SyncStatus | null>(null);

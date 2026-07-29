@@ -5,7 +5,7 @@ const { ingredientsList, ingredientQuantitiesMap } = require('./ingredients.data
 const { allDishes } = require('./dishes');
 
 function buildDataset() {
-  console.log('Generating curated, NON-REDUNDANT Authentic Recipe dataset...');
+  console.log('Generating curated, modular Authentic Recipe dataset...');
 
   const validIngredientIdSet = new Set(ingredientsList.map((i) => i.id));
 
@@ -47,17 +47,65 @@ function buildDataset() {
 
   console.log(`Generated ${recipes.length} UNIQUE, NON-REDUNDANT Authentic Recipes!`);
 
-  const outputData = {
+  const datasetDir = path.join(__dirname, '../../src/database/dataset');
+  const recipesDir = path.join(datasetDir, 'recipes');
+
+  if (!fs.existsSync(recipesDir)) {
+    fs.mkdirSync(recipesDir, { recursive: true });
+  }
+
+  // 1. Categories
+  fs.writeFileSync(
+    path.join(datasetDir, 'categories.json'),
+    JSON.stringify(categories, null, 2)
+  );
+
+  // 2. Ingredients
+  fs.writeFileSync(
+    path.join(datasetDir, 'ingredients.json'),
+    JSON.stringify(ingredientsList, null, 2)
+  );
+
+  // 3. Recipes split by cuisine
+  const filipinoRecipes = recipes.filter((r) => r.cuisine === 'Filipino Food');
+  const italianRecipes = recipes.filter((r) => r.cuisine === 'Italian Food');
+  const americanRecipes = recipes.filter((r) => r.cuisine === 'American Food');
+  const asianRecipes = recipes.filter(
+    (r) => r.cuisine === 'Japanese Food' || r.cuisine.includes('Asian')
+  );
+  const otherRecipes = recipes.filter(
+    (r) =>
+      r.cuisine !== 'Filipino Food' &&
+      r.cuisine !== 'Italian Food' &&
+      r.cuisine !== 'American Food' &&
+      r.cuisine !== 'Japanese Food' &&
+      !r.cuisine.includes('Asian')
+  );
+
+  fs.writeFileSync(
+    path.join(recipesDir, 'filipino.json'),
+    JSON.stringify(filipinoRecipes, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(recipesDir, 'italian.json'),
+    JSON.stringify(italianRecipes, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(recipesDir, 'american.json'),
+    JSON.stringify(americanRecipes, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(recipesDir, 'asian.json'),
+    JSON.stringify([...asianRecipes, ...otherRecipes], null, 2)
+  );
+
+  console.log(`Successfully output modular dataset files to ${datasetDir}`);
+
+  return {
     categories,
     ingredients: ingredientsList,
     recipes
   };
-
-  const outputPath = path.join(__dirname, '../../src/database/filipino_dataset.json');
-  fs.writeFileSync(outputPath, JSON.stringify(outputData, null, 2));
-  console.log(`Successfully saved curated non-redundant recipe dataset to ${outputPath}`);
-
-  return outputData;
 }
 
 module.exports = { buildDataset };

@@ -1,0 +1,552 @@
+[
+  {
+    "id": "ph-rec-62",
+    "title": "Japanese Tamagoyaki Set",
+    "description": "Authentic Japanese Food japanese tamagoyaki set prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 10,
+    "cookTime": 10,
+    "servings": 4,
+    "difficulty": "Easy",
+    "categoryId": "cat-asian-breakfast",
+    "cuisine": "Japanese Food",
+    "mealType": "Breakfast",
+    "calories": 504,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-egg",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-soy-sauce",
+        "quantity": 0.5,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-dashi",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-rice",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-cooking-oil",
+        "quantity": 3,
+        "unit": "tbsp"
+      }
+    ],
+    "steps": [
+      "Whisk 4 Eggs: Whisk 2 eggs (double batch: 4 eggs total) with 3 cups dashi broth, 0.5 cup soy sauce, and 1 tsp sugar.",
+      "Roll Omelet Layers: Pour thin egg layer into tamagoyaki pan with 3 tbsp oil, rolling 4 times for 6 minutes.",
+      "Slice 4 Rolls: Shape rolled omelet block and cut into 4 thick rectangular portions.",
+      "Plate 3 Cups Rice: Spoon 3 cups steamed white rice into 4 breakfast bowls.",
+      "Serve 4 Sets: Serve 1 tamagoyaki slice per bowl to yield 4 complete Japanese breakfast sets."
+    ]
+  },
+  {
+    "id": "ph-rec-63",
+    "title": "Japanese Miso & Salmon Breakfast",
+    "description": "Authentic Japanese Food japanese miso & salmon breakfast prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 10,
+    "cookTime": 15,
+    "servings": 4,
+    "difficulty": "Easy",
+    "categoryId": "cat-asian-breakfast",
+    "cuisine": "Japanese Food",
+    "mealType": "Breakfast",
+    "calories": 521,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-salmon",
+        "quantity": 2,
+        "unit": "fillets"
+      },
+      {
+        "ingredientId": "ing-miso",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "ingredientId": "ing-dashi",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-rice",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-nori",
+        "quantity": 4,
+        "unit": "sheets"
+      },
+      {
+        "ingredientId": "ing-garlic",
+        "quantity": 1,
+        "unit": "head"
+      }
+    ],
+    "steps": [
+      "Pan Grill 2 Salmon Fillets: Salt 2 large salmon fillets (cut into 4 portions) and fry in 1 tbsp oil for 8 minutes until flaky.",
+      "Simmer Miso Broth: Whisk 2 tbsp miso paste into 3 cups warm dashi broth for 4 minutes.",
+      "Portion 3 Cups Rice: Divide 3 cups hot steamed white rice into 4 breakfast bowls.",
+      "Ladle Miso Soup: Pour hot miso soup into 4 side bowls garnished with green onions.",
+      "Serve 4 Breakfast Sets: Plate salmon, rice, miso soup, and 4 nori sheets to serve 4 Teishoku sets."
+    ]
+  },
+  {
+    "id": "ph-rec-64",
+    "title": "Chicken Teriyaki Bowl",
+    "description": "Authentic Japanese Food chicken teriyaki bowl prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 15,
+    "cookTime": 15,
+    "servings": 4,
+    "difficulty": "Easy",
+    "categoryId": "cat-asian-lunch",
+    "cuisine": "Japanese Food",
+    "mealType": "Lunch",
+    "calories": 538,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-chicken",
+        "quantity": 1,
+        "unit": "kg"
+      },
+      {
+        "ingredientId": "ing-soy-sauce",
+        "quantity": 0.5,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-mirin",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "ingredientId": "ing-brown-sugar",
+        "quantity": 3,
+        "unit": "tbsp"
+      },
+      {
+        "ingredientId": "ing-rice",
+        "quantity": 3,
+        "unit": "cups"
+      }
+    ],
+    "steps": [
+      "Pan Fry 1kg Chicken: Pan fry 1kg chicken thigh cutlets in 3 tbsp oil for 8 minutes until golden.",
+      "Simmer Glaze: Pour 0.5 cup soy sauce, 2 tbsp mirin, and 3 tbsp brown sugar; simmer 4 minutes until thick glossy.",
+      "Slice 1kg Chicken: Slice the 1kg cooked teriyaki chicken into strips.",
+      "Mound 3 Cups Rice: Divide 3 cups steamed white rice into 4 donburi bowls.",
+      "Serve 4 Bowls: Top each bowl with sliced chicken and glaze to serve 4 complete lunches."
+    ]
+  },
+  {
+    "id": "ph-rec-65",
+    "title": "Japanese Chicken Katsu Curry",
+    "description": "Authentic Japanese Food japanese chicken katsu curry prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 20,
+    "cookTime": 25,
+    "servings": 4,
+    "difficulty": "Medium",
+    "categoryId": "cat-asian-lunch",
+    "cuisine": "Japanese Food",
+    "mealType": "Lunch",
+    "calories": 555,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-chicken",
+        "quantity": 1,
+        "unit": "kg"
+      },
+      {
+        "ingredientId": "ing-breadcrumbs",
+        "quantity": 1,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-egg",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-flour",
+        "quantity": 1,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-curry-block",
+        "quantity": 1,
+        "unit": "box"
+      },
+      {
+        "ingredientId": "ing-potatoes",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-carrots",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-rice",
+        "quantity": 3,
+        "unit": "cups"
+      }
+    ],
+    "steps": [
+      "Simmer Vegetables & Curry: Simmer 2 potatoes and 2 carrots in 3 cups water for 15 minutes, then melt 1 box curry roux block.",
+      "Bread 1kg Chicken: Season 1kg chicken breasts, coat in 1 cup flour, 2 beaten eggs, and 1 cup panko breadcrumbs.",
+      "Deep Fry Katsu: Deep fry chicken cutlets in 3 tbsp oil for 8 minutes until golden crisp.",
+      "Slice 4 Katsu Cutlets: Slice crispy chicken katsu into strips.",
+      "Plate 4 Curry Plates: Divide 3 cups rice across 4 plates, lay katsu, and ladle curry sauce for 4 servings."
+    ]
+  },
+  {
+    "id": "ph-rec-66",
+    "title": "Pork Katsudon",
+    "description": "Authentic Japanese Food pork katsudon prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 15,
+    "cookTime": 20,
+    "servings": 4,
+    "difficulty": "Medium",
+    "categoryId": "cat-asian-lunch",
+    "cuisine": "Japanese Food",
+    "mealType": "Lunch",
+    "calories": 572,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-pork-shoulder",
+        "quantity": 800,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "ing-breadcrumbs",
+        "quantity": 1,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-egg",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-dashi",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-soy-sauce",
+        "quantity": 0.5,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-onion",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-rice",
+        "quantity": 3,
+        "unit": "cups"
+      }
+    ],
+    "steps": [
+      "Fry 800g Pork: Bread 800g pork shoulder with 1 cup panko and 2 eggs; fry in oil for 7 minutes until crisp.",
+      "Simmer Dashi Broth: Simmer 2 onions in 3 cups dashi stock and 0.5 cup soy sauce for 4 minutes.",
+      "Set 2 Eggs Over Pork: Lay sliced tonkatsu into broth, drizzle 2 beaten eggs, cover 1 minute until soft set.",
+      "Mound 3 Cups Rice: Spoon 3 cups hot short-grain rice into 4 donburi bowls.",
+      "Slide 4 Portions: Slide sweet egg-tonkatsu mixture evenly over rice bowls to serve 4 portions."
+    ]
+  },
+  {
+    "id": "ph-rec-67",
+    "title": "Japanese Tonkotsu Ramen",
+    "description": "Authentic Japanese Food japanese tonkotsu ramen prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 20,
+    "cookTime": 40,
+    "servings": 4,
+    "difficulty": "Medium",
+    "categoryId": "cat-asian-dinner",
+    "cuisine": "Japanese Food",
+    "mealType": "Dinner",
+    "calories": 589,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-ramen-noodles",
+        "quantity": 2,
+        "unit": "packs"
+      },
+      {
+        "ingredientId": "ing-pork-belly",
+        "quantity": 1,
+        "unit": "kg"
+      },
+      {
+        "ingredientId": "ing-egg",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-garlic",
+        "quantity": 1,
+        "unit": "head"
+      },
+      {
+        "ingredientId": "ing-soy-sauce",
+        "quantity": 0.5,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-nori",
+        "quantity": 4,
+        "unit": "sheets"
+      }
+    ],
+    "steps": [
+      "Simmer Tonkotsu Broth: Simmer pork bone broth with 1 head garlic and 0.5 cup soy sauce for 20 minutes.",
+      "Boil 2 Packs Ramen: Boil 2 packs ramen noodles in boiling water for 3 minutes until chewy.",
+      "Sear 1kg Pork Belly: Sear 1kg sliced pork belly in pan for 4 minutes until charred caramelized.",
+      "Divide 4 Nori & Eggs: Soft boil 2 eggs (halved into 4) and prep 4 nori seaweed sheets.",
+      "Assemble 4 Bowls: Divide noodles into 4 deep bowls, pour hot broth, top with chashu pork, egg, and nori for 4 servings."
+    ]
+  },
+  {
+    "id": "ph-rec-68",
+    "title": "Beef Gyudon Bowl",
+    "description": "Authentic Japanese Food beef gyudon bowl prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 10,
+    "cookTime": 15,
+    "servings": 4,
+    "difficulty": "Easy",
+    "categoryId": "cat-asian-dinner",
+    "cuisine": "Japanese Food",
+    "mealType": "Dinner",
+    "calories": 606,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-ground-beef",
+        "quantity": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "ing-onion",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-dashi",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-soy-sauce",
+        "quantity": 0.5,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-mirin",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "ingredientId": "ing-rice",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-egg",
+        "quantity": 2,
+        "unit": "pcs"
+      }
+    ],
+    "steps": [
+      "Simmer Broth: Combine 3 cups dashi stock, 0.5 cup soy sauce, and 2 tbsp mirin with 2 sliced onions; simmer 5 minutes.",
+      "Cook 500g Beef: Add 500g ground/sliced beef into simmering broth, cooking for 5 minutes until tender.",
+      "Divide 3 Cups Rice: Spoon 3 cups steamed white rice into 4 deep donburi bowls.",
+      "Top Beef & Eggs: Ladle sweet beef and onions over rice, top with 2 eggs (halved/poached).",
+      "Serve 4 Gyudon Bowls: Serve 4 piping hot gyudon dinner bowls."
+    ]
+  },
+  {
+    "id": "ph-rec-69",
+    "title": "Shrimp Tempura Bowl (Tendon)",
+    "description": "Authentic Japanese Food shrimp tempura bowl (tendon) prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 15,
+    "cookTime": 15,
+    "servings": 4,
+    "difficulty": "Medium",
+    "categoryId": "cat-asian-dinner",
+    "cuisine": "Japanese Food",
+    "mealType": "Dinner",
+    "calories": 623,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-shrimp",
+        "quantity": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "ing-flour",
+        "quantity": 1,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-egg",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-dashi",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-soy-sauce",
+        "quantity": 0.5,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-rice",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-cooking-oil",
+        "quantity": 3,
+        "unit": "tbsp"
+      }
+    ],
+    "steps": [
+      "Prep 500g Shrimp: Peel and stretch 500g shrimp straight.",
+      "Batter & Deep Fry: Dip in 1 cup cold flour-egg batter and fry in 3 tbsp oil for 3 minutes until golden crisp.",
+      "Simmer Tendon Sauce: Simmer 3 cups dashi stock and 0.5 cup soy sauce for 3 minutes.",
+      "Divide 3 Cups Rice: Scoop 3 cups white rice into 4 bowls.",
+      "Serve 4 Tendon Bowls: Arrange crispy tempura over rice and drizzle sauce to serve 4 bowls."
+    ]
+  },
+  {
+    "id": "ph-rec-70",
+    "title": "Okonomiyaki (Japanese Savory Pancake)",
+    "description": "Authentic Japanese Food okonomiyaki (japanese savory pancake) prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 15,
+    "cookTime": 15,
+    "servings": 4,
+    "difficulty": "Medium",
+    "categoryId": "cat-asian-dinner",
+    "cuisine": "Japanese Food",
+    "mealType": "Dinner",
+    "calories": 640,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-flour",
+        "quantity": 1,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-egg",
+        "quantity": 2,
+        "unit": "pcs"
+      },
+      {
+        "ingredientId": "ing-dashi",
+        "quantity": 3,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-pork-belly",
+        "quantity": 1,
+        "unit": "kg"
+      },
+      {
+        "ingredientId": "ing-soy-sauce",
+        "quantity": 0.5,
+        "unit": "cup"
+      },
+      {
+        "ingredientId": "ing-cooking-oil",
+        "quantity": 3,
+        "unit": "tbsp"
+      }
+    ],
+    "steps": [
+      "Mix Cabbage Batter: Mix 1 cup flour, 3 cups dashi broth, 2 eggs, and shredded cabbage into batter.",
+      "Griddle 4 Pancakes: Pour batter into 4 thick round pancakes on skillet with 3 tbsp oil.",
+      "Layer 1kg Pork Belly: Layer 1kg pork belly strips over pancakes, flip and cook 6 minutes per side.",
+      "Top Glaze Sauce: Drizzle 0.5 cup soy-okonomiyaki sauce and mayo over tops.",
+      "Portion 4 Servings: Serve 1 okonomiyaki pancake per plate to yield 4 dinner servings."
+    ]
+  },
+  {
+    "id": "ph-rec-71",
+    "title": "Mango Sticky Rice",
+    "description": "Authentic Japanese Food mango sticky rice prepared traditional style with rich savory flavors.",
+    "imageUrl": "",
+    "prepTime": 15,
+    "cookTime": 25,
+    "servings": 4,
+    "difficulty": "Easy",
+    "categoryId": "cat-asian-merienda",
+    "cuisine": "Japanese Food",
+    "mealType": "Merienda",
+    "calories": 657,
+    "createdAt": "2026-07-29T15:29:20.240Z",
+    "updatedAt": "2026-07-29T15:29:20.240Z",
+    "ingredients": [
+      {
+        "ingredientId": "ing-sticky-rice",
+        "quantity": 2,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-coconut-milk",
+        "quantity": 2,
+        "unit": "cups"
+      },
+      {
+        "ingredientId": "ing-brown-sugar",
+        "quantity": 3,
+        "unit": "tbsp"
+      }
+    ],
+    "steps": [
+      "Steam 2 Cups Glutinous Rice: Steam 2 cups sticky rice over water for 20 minutes until cooked.",
+      "Simmer Coconut Sauce: Simmer 2 cups coconut milk and 3 tbsp brown sugar for 5 minutes.",
+      "Soak Rice: Fold 3/4 coconut sauce into warm sticky rice, resting for 15 minutes.",
+      "Slice Ripe Mangoes: Slice fresh ripe mangoes into pieces.",
+      "Serve 4 Dessert Plates: Divide rice into 4 plates with mangoes and remaining coconut cream for 4 servings."
+    ]
+  }
+]
