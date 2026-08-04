@@ -30,8 +30,17 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
 # local env files
-.env*.local
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
 
 # typescript
 *.tsbuildinfo
@@ -41,3 +50,16 @@ app-example
 # generated native folders
 /ios
 /android
+
+# EAS / Expo credentials
+credentials.json
+.eas/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
+
+# Build output
+build/
