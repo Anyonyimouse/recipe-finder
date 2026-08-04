@@ -43,6 +43,16 @@ export class SQLiteFavoriteRepository implements FavoriteRepository {
     }
   }
 
+  async clearAllFavorites(): Promise<void> {
+    const db = await getDatabase();
+    await db.execAsync('PRAGMA foreign_keys = OFF;');
+    try {
+      await db.runAsync('DELETE FROM favorites');
+    } finally {
+      await db.execAsync('PRAGMA foreign_keys = ON;');
+    }
+  }
+
   async isFavorite(recipeId: string): Promise<boolean> {
     const db = await getDatabase();
     const row = await db.getFirstAsync<{ recipe_id: string }>(

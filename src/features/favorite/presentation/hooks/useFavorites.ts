@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useFavoriteStore } from '../stores/favoriteStore';
 
 export function useFavorites() {
-  const { favoriteIds, isLoading, loadFavorites, toggleFavorite, isFavorite } =
+  const { favoriteIds, isLoading, loadFavorites, toggleFavorite, isFavorite, clearAllFavorites } =
     useFavoriteStore();
 
   useEffect(() => {
@@ -14,6 +14,7 @@ export function useFavorites() {
     isLoading,
     toggleFavorite,
     isFavorite,
+    clearAllFavorites,
     reload: loadFavorites,
   };
 }

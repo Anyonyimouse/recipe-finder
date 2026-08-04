@@ -3,4 +3,5 @@ export interface FavoriteRepository {
   addFavorite(recipeId: string): Promise<void>;
   removeFavorite(recipeId: string): Promise<void>;
   isFavorite(recipeId: string): Promise<boolean>;
+  clearAllFavorites(): Promise<void>;
 }

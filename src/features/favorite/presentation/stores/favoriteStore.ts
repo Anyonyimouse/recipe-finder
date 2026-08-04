@@ -9,6 +9,7 @@ interface FavoriteState {
   loadFavorites: () => Promise<void>;
   toggleFavorite: (recipeId: string) => Promise<void>;
   isFavorite: (recipeId: string) => boolean;
+  clearAllFavorites: () => Promise<void>;
 }
 
 export const useFavoriteStore = create<FavoriteState>((set, get) => ({
@@ -39,5 +40,10 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
 
   isFavorite: (recipeId: string) => {
     return get().favoriteIds.includes(recipeId);
+  },
+
+  clearAllFavorites: async () => {
+    set({ favoriteIds: [] });
+    await repo.clearAllFavorites();
   },
 }));
