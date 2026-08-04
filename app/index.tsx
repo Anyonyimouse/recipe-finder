@@ -46,7 +46,7 @@ export default function LandingScreen() {
 
           {/* Subtitle Description */}
           <Text style={styles.descriptionText}>
-            BingCart is a user-friendly recipe app designed for those who are new
+            Mealify is a user-friendly recipe app designed for those who are new
             to cooking and want to try new recipes at home
           </Text>
 

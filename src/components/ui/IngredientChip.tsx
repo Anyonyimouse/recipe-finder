@@ -64,10 +64,7 @@ export const IngredientChip: React.FC<IngredientChipProps> = React.memo(
         )}
       </Pressable>
     );
-  },
-  (prevProps, nextProps) =>
-    prevProps.isSelected === nextProps.isSelected &&
-    prevProps.ingredient.id === nextProps.ingredient.id
+  }
 );
 
 IngredientChip.displayName = 'IngredientChip';

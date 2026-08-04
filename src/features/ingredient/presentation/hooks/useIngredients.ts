@@ -28,15 +28,15 @@ export function useIngredients() {
     loadIngredients();
   }, [loadIngredients]);
 
-  const toggleSelectIngredient = (id: string) => {
+  const toggleSelectIngredient = useCallback((id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const clearSelection = () => {
+  const clearSelection = useCallback(() => {
     setSelectedIds([]);
-  };
+  }, []);
 
   return {
     ingredients,

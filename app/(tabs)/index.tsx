@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { AlignJustify, ChefHat, Moon, Search, Sun, Sunset, UtensilsCrossed, X } from 'lucide-react-native';
+import { AlignJustify, ChefHat, Search, UtensilsCrossed, X } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CuisineDrawerModal } from '../../src/components/ui/CuisineDrawerModal';
 import { IngredientModal } from '../../src/components/ui/IngredientModal';
 import { RecipeCard } from '../../src/components/ui/RecipeCard';
+import { getRecipeImageSource } from '../../src/constants/recipeImages';
 import { useFavorites } from '../../src/features/favorite/presentation/hooks/useFavorites';
 import { useIngredients } from '../../src/features/ingredient/presentation/hooks/useIngredients';
 import { useRecipeSearch } from '../../src/features/recipe/presentation/hooks/useRecipeSearch';
@@ -24,6 +26,9 @@ import { useSync } from '../../src/features/sync/presentation/hooks/useSync';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.72;
+
+
+
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -77,104 +82,102 @@ export default function RecipeFinderScreen() {
   const featuredRecipes = useMemo(() => recipes.slice(0, 5), [recipes]);
   const popularRecipes = useMemo(() => recipes.slice(5), [recipes]);
 
-  const GreetingIcon = () => {
-    if (greeting.icon === 'sun') return <Sun size={14} color="#F59E0B" strokeWidth={2} />;
-    if (greeting.icon === 'sunset') return <Sunset size={14} color="#F97316" strokeWidth={2} />;
-    return <Moon size={14} color="#6366F1" strokeWidth={2} />;
-  };
+ 
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
+      {/* ── Sticky Fixed Top Header ── */}
+      <View style={{ backgroundColor: '#F9FAFB', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, zIndex: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.03)' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* 🎨 Stylish Mealify Typographic Brand Text */}
+          <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+            <Text style={{ fontSize: 28, fontWeight: '900', color: '#0F172A', letterSpacing: -0.8 }}>
+              Meal
+            </Text>
+            <Text style={{ fontSize: 28, fontWeight: '900', color: '#0D9488', letterSpacing: -0.8 }}>
+              ify
+            </Text>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#F59E0B', marginLeft: 3, marginBottom: 4 }} />
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+
+            {/* 🔍 Search — toggles the inline search bar */}
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                setShowSearch((v) => !v);
+              }}
+              style={{
+                width: 42, height: 42, borderRadius: 14,
+                backgroundColor: showSearch ? '#0D9488' : '#FFFFFF',
+                borderWidth: 1, borderColor: showSearch ? '#0D9488' : '#E5E7EB',
+                alignItems: 'center', justifyContent: 'center',
+                shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+              }}
+            >
+              <Search size={18} color={showSearch ? '#FFFFFF' : '#374151'} strokeWidth={2} />
+            </Pressable>
+
+            {/* ☰ Cuisine Menu — opens the cuisine/meal-type drawer */}
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
+                setIsCuisineDrawerOpen(true);
+              }}
+              style={{
+                width: 42, height: 42, borderRadius: 14,
+                backgroundColor: hasCuisineFilter ? '#0D9488' : '#FFFFFF',
+                borderWidth: 1, borderColor: hasCuisineFilter ? '#0D9488' : '#E5E7EB',
+                alignItems: 'center', justifyContent: 'center',
+                shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+              }}
+            >
+              <AlignJustify size={18} color={hasCuisineFilter ? '#FFFFFF' : '#374151'} strokeWidth={2} />
+            </Pressable>
+
+          </View>
+        </View>
+
+        {/* ── Inline Search Bar (collapsible) ── */}
+        {showSearch && (
+          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 4, marginTop: 12, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 }}>
+            <Search size={16} color="#9CA3AF" strokeWidth={2} />
+            <TextInput
+              placeholder="Search recipes..."
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+              style={{ flex: 1, color: '#111827', fontWeight: '500', marginLeft: 10, fontSize: 14, paddingVertical: 10 }}
+            />
+            {searchQuery !== '' && (
+              <Pressable
+                onPress={() => setSearchQuery('')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <X size={16} color="#9CA3AF" strokeWidth={2.5} />
+              </Pressable>
+            )}
+          </View>
+        )}
+      </View>
+
       <FlatList
         data={selectedIds.length > 0 || searchQuery ? recipes : popularRecipes}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 110 }}
         columnWrapperStyle={{ gap: 12 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-            {/* ── Header ── */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, paddingTop: 8, paddingBottom: 20 }}>
-              <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                  <GreetingIcon />
-                  <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500', marginLeft: 5 }}>
-                    {greeting.text}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 26, fontWeight: '800', color: '#111827', letterSpacing: -0.5 }}>
-                  BingCart
-                </Text>
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-
-                {/* 🔍 Search — toggles the inline search bar */}
-                <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
-                    setShowSearch((v) => !v);
-                  }}
-                  style={{
-                    width: 42, height: 42, borderRadius: 14,
-                    backgroundColor: showSearch ? '#0D9488' : '#FFFFFF',
-                    borderWidth: 1, borderColor: showSearch ? '#0D9488' : '#E5E7EB',
-                    alignItems: 'center', justifyContent: 'center',
-                    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
-                  }}
-                >
-                  <Search size={18} color={showSearch ? '#FFFFFF' : '#374151'} strokeWidth={2} />
-                </Pressable>
-
-                {/* ☰ Cuisine Menu — opens the cuisine/meal-type drawer */}
-                <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
-                    setIsCuisineDrawerOpen(true);
-                  }}
-                  style={{
-                    width: 42, height: 42, borderRadius: 14,
-                    backgroundColor: hasCuisineFilter ? '#0D9488' : '#FFFFFF',
-                    borderWidth: 1, borderColor: hasCuisineFilter ? '#0D9488' : '#E5E7EB',
-                    alignItems: 'center', justifyContent: 'center',
-                    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
-                  }}
-                >
-                  <AlignJustify size={18} color={hasCuisineFilter ? '#FFFFFF' : '#374151'} strokeWidth={2} />
-                </Pressable>
-
-              </View>
-            </View>
-
-            {/* ── Inline Search Bar (collapsible) ── */}
-            {showSearch && (
-              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 4, marginBottom: 16, marginHorizontal: 4, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 }}>
-                <Search size={16} color="#9CA3AF" strokeWidth={2} />
-                <TextInput
-                  placeholder="Search recipes..."
-                  placeholderTextColor="#9CA3AF"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  autoFocus
-                  style={{ flex: 1, color: '#111827', fontWeight: '500', marginLeft: 10, fontSize: 14, paddingVertical: 12 }}
-                />
-                {searchQuery !== '' && (
-                  <Pressable
-                    onPress={() => setSearchQuery('')}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <X size={16} color="#9CA3AF" strokeWidth={2.5} />
-                  </Pressable>
-                )}
-              </View>
-            )}
-
             {/* ── Featured Section ── */}
             {featuredRecipes.length > 0 && !searchQuery && selectedIds.length === 0 && (
               <View style={{ marginBottom: 24 }}>
@@ -186,40 +189,80 @@ export default function RecipeFinderScreen() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ paddingLeft: 4, paddingRight: 16, gap: 12 }}
                 >
-                  {featuredRecipes.map((recipe) => (
-                    <Pressable
-                      key={recipe.id}
-                      onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
-                        router.push({ pathname: '/recipe/[id]', params: { id: recipe.id } } as any);
-                      }}
-                      style={{ width: FEATURED_CARD_WIDTH, backgroundColor: '#0F766E', borderRadius: 20, overflow: 'hidden', padding: 20, paddingBottom: 16, shadowColor: '#0D9488', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 }}
-                    >
-                      <View style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.08)' }} />
-                      <View style={{ position: 'absolute', bottom: -10, right: 20, width: 70, height: 70, borderRadius: 35, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+                  {featuredRecipes.map((recipe) => {
+                    const imageSource = getRecipeImageSource(recipe.id, recipe.imageUrl);
+                    const totalTime = recipe.prepTime + recipe.cookTime;
+                    return (
+                      <Pressable
+                        key={recipe.id}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                          router.push({ pathname: '/recipe/[id]', params: { id: recipe.id } } as any);
+                        }}
+                        style={{
+                          width: FEATURED_CARD_WIDTH,
+                          height: 175,
+                          borderRadius: 20,
+                          overflow: 'hidden',
+                          position: 'relative',
+                          backgroundColor: '#0F766E',
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.15,
+                          shadowRadius: 10,
+                          elevation: 5,
+                        }}
+                      >
+                        {/* Recipe Photo */}
+                        {imageSource ? (
+                          <Image
+                            source={imageSource}
+                            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}
+                            contentFit="cover"
+                            transition={200}
+                          />
+                        ) : null}
 
-                      <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 40 }}>
-                        <ChefHat size={22} color="#FFFFFF" strokeWidth={1.75} />
-                      </View>
+                        {/* Dark Overlay for Text Readability */}
+                        <View
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                          }}
+                        />
 
-                      <Text style={{ fontSize: 17, fontWeight: '800', color: '#FFFFFF', marginBottom: 10, lineHeight: 22 }} numberOfLines={2}>
-                        {recipe.title}
-                      </Text>
+                        {/* Content */}
+                        <View style={{ flex: 1, padding: 16, justifyContent: 'space-between', zIndex: 2 }}>
+                          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' }}>
+                            <ChefHat size={18} color="#FFFFFF" strokeWidth={2} />
+                          </View>
 
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <View style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
-                          <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', fontWeight: '500' }}>
-                            ⏱ {recipe.prepTime + recipe.cookTime} Min
-                          </Text>
+                          <View>
+                            <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 6, lineHeight: 20 }} numberOfLines={2}>
+                              {recipe.title}
+                            </Text>
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <View style={{ backgroundColor: 'rgba(0,0,0,0.35)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3 }}>
+                                <Text style={{ fontSize: 11, color: '#FFFFFF', fontWeight: '600' }}>
+                                  ⏱ {totalTime} Min
+                                </Text>
+                              </View>
+                              {recipe.cuisine && (
+                                <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: '600' }}>
+                                  {recipe.cuisine}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
                         </View>
-                        {recipe.cuisine && (
-                          <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: '500' }}>
-                            {recipe.cuisine}
-                          </Text>
-                        )}
-                      </View>
-                    </Pressable>
-                  ))}
+                      </Pressable>
+                    );
+                  })}
                 </ScrollView>
               </View>
             )}
@@ -258,12 +301,7 @@ export default function RecipeFinderScreen() {
                         key={type}
                         onPress={() => {
                           Haptics.selectionAsync().catch(() => { });
-                          if (type === 'All') {
-                            setSelectedMealType('All');
-                            setSelectedCuisine('All');
-                          } else {
-                            setSelectedMealType(type);
-                          }
+                          setSelectedMealType(type);
                         }}
                         style={{
                           paddingHorizontal: 22, paddingVertical: 10,

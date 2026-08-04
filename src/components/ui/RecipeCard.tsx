@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { Pressable, Text, View } from 'react-native';
 import { Recipe } from '../../types/recipe';
 import { Clock, Heart, ChefHat } from 'lucide-react-native';
+import { getRecipeImageSource } from '../../constants/recipeImages';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -19,7 +20,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = React.memo(function RecipeC
 }) {
   const [imgError, setImgError] = useState(false);
   const totalTime = recipe.prepTime + recipe.cookTime;
-  const hasImage = Boolean(recipe.imageUrl && recipe.imageUrl.trim() !== '' && !imgError);
+  const imageSource = !imgError ? getRecipeImageSource(recipe.id, recipe.imageUrl) : null;
+  const hasImage = Boolean(imageSource);
 
   return (
     <Pressable
@@ -40,7 +42,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = React.memo(function RecipeC
       <View style={{ width: '100%', aspectRatio: 1, backgroundColor: '#F0FDF9', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         {hasImage ? (
           <Image
-            source={{ uri: recipe.imageUrl }}
+            source={imageSource}
             style={{ width: '100%', height: '100%' }}
             contentFit="cover"
             transition={200}

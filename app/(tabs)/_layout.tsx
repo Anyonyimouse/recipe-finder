@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Heart, Home } from 'lucide-react-native';
+import { Compass, Heart, Home } from 'lucide-react-native';
 import React from 'react';
 
 export default function TabLayout() {
@@ -28,6 +28,16 @@ export default function TabLayout() {
         },
       }}
     >
+      {/* 1. Browse Tab */}
+      <Tabs.Screen
+        name="browse"
+        options={{
+          title: 'Browse',
+          tabBarIcon: ({ color, size }) => <Compass color={color} size={size} />,
+        }}
+      />
+
+      {/* 2. Home Tab */}
       <Tabs.Screen
         name="index"
         options={{
@@ -35,6 +45,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
       />
+
+      {/* 3. Favorites Tab */}
       <Tabs.Screen
         name="favorites"
         options={{

@@ -14,6 +14,7 @@ import { ArrowLeft, Clock, Users, Heart, ChefHat, Plus, Minus, Scale } from 'luc
 import * as Haptics from 'expo-haptics';
 import { useRecipeDetails } from '../../src/features/recipe/presentation/hooks/useRecipeDetails';
 import { useFavorites } from '../../src/features/favorite/presentation/hooks/useFavorites';
+import { getRecipeImageSource } from '../../src/constants/recipeImages';
 
 /**
  * Smart quantity scaling and unit conversion helper
@@ -98,7 +99,8 @@ export default function RecipeDetailScreen() {
   }
 
   const favorite = isFavorite(recipe.id);
-  const hasImage = Boolean(recipe.imageUrl && recipe.imageUrl.trim() !== '' && !imgError);
+  const imageSource = !imgError ? getRecipeImageSource(recipe.id, recipe.imageUrl) : null;
+  const hasImage = Boolean(imageSource);
   const totalTime = recipe.prepTime + recipe.cookTime;
   const originalServings = recipe.servings || 1;
   const isPortionModified = targetServings !== originalServings;
@@ -121,7 +123,7 @@ export default function RecipeDetailScreen() {
       <View style={{ height: 300, backgroundColor: '#0F766E', position: 'relative' }}>
         {hasImage ? (
           <Image
-            source={{ uri: recipe.imageUrl }}
+            source={imageSource}
             style={{ width: '100%', height: '100%' }}
             contentFit="cover"
             onError={() => setImgError(true)}

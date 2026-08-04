@@ -83,7 +83,13 @@ export function CuisineDrawerModal({
   onSelectMaxCalories,
   onClose,
 }: CuisineDrawerModalProps) {
-  const [expandedCuisine, setExpandedCuisine] = useState<string>('Filipino Food');
+  const [expandedCuisine, setExpandedCuisine] = useState<string>('');
+
+  React.useEffect(() => {
+    if (visible) {
+      setExpandedCuisine(selectedCuisine && selectedCuisine !== 'All' ? selectedCuisine : '');
+    }
+  }, [visible, selectedCuisine]);
 
   const handleCuisineHeaderPress = (cuisineId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
@@ -281,7 +287,7 @@ export function CuisineDrawerModal({
           {/* Footer */}
           <View style={{ paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: 1, borderTopColor: '#F3F4F6' }}>
             <Text style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', fontWeight: '500' }}>
-              BingCart — Offline Recipe Finder
+              Mealify — Offline Recipe Finder
             </Text>
           </View>
         </SafeAreaView>
