@@ -10,18 +10,21 @@ export class SQLiteFavoriteRepository implements FavoriteRepository {
     return rows.map((r) => r.recipe_id);
   }
 
-  async addFavorite(recipeId: string): Promise<void> {
+  async addFavorite(recipeId: string, title?: string, imageUrl?: string): Promise<void> {
     const db = await getDatabase();
     const now = new Date().toISOString();
 
     // Disable foreign keys temporarily for favorite stub insertion to prevent FK constraint failures
     await db.execAsync('PRAGMA foreign_keys = OFF;');
     try {
-      // 1. Insert stub recipe if missing
+      // 1. Insert stub recipe if missing, preserving existing image_url if present
       await db.runAsync(
-        `INSERT OR IGNORE INTO recipes (id, title, description, image_url, prep_time, cook_time, servings, difficulty, category_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
-        [recipeId, 'Saved Recipe', 'Favorite Item', '', 15, 20, 4, 'Easy', now, now]
+        `INSERT INTO recipes (id, title, description, image_url, prep_time, cook_time, servings, difficulty, category_id, created_at, updated_at)
+         VALUES (?, ?, 'Favorite Recipe', ?, 15, 20, 4, 'Easy', NULL, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           image_url = CASE WHEN excluded.image_url != '' THEN excluded.image_url ELSE recipes.image_url END,
+           title = CASE WHEN excluded.title != 'Saved Recipe' THEN excluded.title ELSE recipes.title END`,
+        [recipeId, title || 'Saved Recipe', imageUrl || '', now, now]
       );
       // 2. Insert into favorites
       await db.runAsync(

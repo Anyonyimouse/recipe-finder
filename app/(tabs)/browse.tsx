@@ -114,17 +114,27 @@ export default function BrowseScreen() {
           renderItem={({ item }) => {
             const recipeObj = toRecipeObject(item);
             const favKey = `online-${item.idMeal}`;
+            const isItemDownloaded = Boolean(downloadedIds[item.idMeal]) && isFavorite(favKey);
+            const isItemDownloading = isDownloading;
+
             return (
               <RecipeCard
                 recipe={recipeObj}
                 isFavorite={isFavorite(favKey)}
+                actionIcon="download"
+                isDownloaded={isItemDownloaded}
+                isDownloading={isItemDownloading}
+                onDownload={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+                  handleDownloadRecipe(item);
+                }}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
                   openRecipe(item);
                 }}
                 onToggleFavorite={() => {
                   Haptics.selectionAsync().catch(() => {});
-                  toggleFavorite(favKey);
+                  toggleFavorite(favKey, item.strMeal, item.strMealThumb);
                 }}
               />
             );

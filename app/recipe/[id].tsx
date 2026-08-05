@@ -169,7 +169,7 @@ export default function RecipeDetailScreen() {
               <ArrowLeft size={19} color="#FFFFFF" strokeWidth={2.5} />
             </Pressable>
             <Pressable
-              onPress={() => toggleFavorite(recipe.id)}
+              onPress={() => toggleFavorite(recipe.id, recipe.title, recipe.imageUrl)}
               style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}
             >
               <Heart
@@ -431,7 +431,7 @@ export default function RecipeDetailScreen() {
           </Pressable>
 
           <Pressable
-            onPress={() => toggleFavorite(recipe.id)}
+            onPress={() => toggleFavorite(recipe.id, recipe.title, recipe.imageUrl)}
             style={{ backgroundColor: '#F3F4F6', borderColor: '#E5E7EB', borderWidth: 1, borderRadius: 16, paddingVertical: 14, alignItems: 'center' }}
           >
             <Text style={{ fontSize: 14, fontWeight: '700', color: favorite ? '#EF4444' : '#374151' }}>

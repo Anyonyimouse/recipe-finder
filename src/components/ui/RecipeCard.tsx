@@ -1,15 +1,19 @@
-import { Image } from 'expo-image';
-import { ChefHat, Clock, Heart } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { getRecipeImageSource } from '../../constants/recipeImages';
+import { Image } from 'expo-image';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Recipe } from '../../types/recipe';
+import { Clock, Heart, ChefHat, Download, CheckCircle2 } from 'lucide-react-native';
+import { getRecipeImageSource } from '../../constants/recipeImages';
 
 interface RecipeCardProps {
   recipe: Recipe;
   isFavorite: boolean;
   onPress: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string, title?: string, imageUrl?: string) => void;
+  actionIcon?: 'heart' | 'download';
+  isDownloaded?: boolean;
+  isDownloading?: boolean;
+  onDownload?: () => void;
 }
 
 export const RecipeCard: React.FC<RecipeCardProps> = React.memo(function RecipeCard({
@@ -17,6 +21,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = React.memo(function RecipeC
   isFavorite,
   onPress,
   onToggleFavorite,
+  actionIcon = 'heart',
+  isDownloaded = false,
+  isDownloading = false,
+  onDownload,
 }) {
   const [imgError, setImgError] = useState(false);
   const totalTime = recipe.prepTime + recipe.cookTime;
@@ -56,18 +64,71 @@ export const RecipeCard: React.FC<RecipeCardProps> = React.memo(function RecipeC
           </View>
         )}
 
-        {/* Heart Button */}
-        <Pressable
-          onPress={() => onToggleFavorite(recipe.id)}
-          style={{ position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }}
-        >
-          <Heart
-            size={15}
-            color={isFavorite ? '#EF4444' : '#9CA3AF'}
-            fill={isFavorite ? '#EF4444' : 'transparent'}
-            strokeWidth={2}
-          />
-        </Pressable>
+        {/* Top Right Action Button: Download Icon for Browse vs Heart Icon */}
+        {actionIcon === 'download' ? (
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation();
+              if (onDownload && !isDownloading && !isDownloaded) {
+                onDownload();
+              }
+            }}
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: isDownloaded ? '#10B981' : '#FFFFFF',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            {isDownloading ? (
+              <ActivityIndicator size="small" color="#0D9488" />
+            ) : isDownloaded ? (
+              <CheckCircle2 size={16} color="#FFFFFF" strokeWidth={2.5} />
+            ) : (
+              <Download size={15} color="#0D9488" strokeWidth={2} />
+            )}
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(recipe.id, recipe.title, recipe.imageUrl);
+            }}
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: '#FFFFFF',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <Heart
+              size={15}
+              color={isFavorite ? '#EF4444' : '#9CA3AF'}
+              fill={isFavorite ? '#EF4444' : 'transparent'}
+              strokeWidth={2}
+            />
+          </Pressable>
+        )}
 
         {/* Match badge */}
         {recipe.matchCount !== undefined && recipe.totalIngredients !== undefined && (

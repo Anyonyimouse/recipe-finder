@@ -9,7 +9,7 @@ interface FavoriteState {
   favoriteIds: string[];
   isLoading: boolean;
   loadFavorites: () => Promise<void>;
-  toggleFavorite: (recipeId: string) => Promise<void>;
+  toggleFavorite: (recipeId: string, title?: string, imageUrl?: string) => Promise<void>;
   isFavorite: (recipeId: string) => boolean;
   clearAllFavorites: () => Promise<void>;
 }
@@ -28,10 +28,10 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
     }
   },
 
-  toggleFavorite: async (recipeId: string) => {
+  toggleFavorite: async (recipeId: string, title?: string, imageUrl?: string) => {
     const { favoriteIds } = get();
     try {
-      const updated = await toggleFavoriteUseCase.execute(recipeId, favoriteIds);
+      const updated = await toggleFavoriteUseCase.execute(recipeId, favoriteIds, title, imageUrl);
       set({ favoriteIds: updated });
     } catch {
       // safe fallback

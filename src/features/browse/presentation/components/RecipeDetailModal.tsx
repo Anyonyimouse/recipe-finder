@@ -30,6 +30,7 @@ import { NutritionCard } from '../../../nutrition/presentation/components/Nutrit
 import { CookingTimer } from '../../../voice_cooking/presentation/components/CookingTimer';
 import { VoiceStepAssistant } from '../../../voice_cooking/presentation/components/VoiceStepAssistant';
 import { useShoppingList } from '../../../shopping_list/presentation/hooks/useShoppingList';
+import { useFavorites } from '../../../favorite/presentation/hooks/useFavorites';
 
 interface RecipeDetailModalProps {
   recipe: OnlineRecipe;
@@ -40,7 +41,7 @@ interface RecipeDetailModalProps {
   detailTab: 'ingredients' | 'instructions';
   setDetailTab: (tab: 'ingredients' | 'instructions') => void;
   targetServings: number;
-  setTargetServings: (n: number) => void;
+  setTargetServings: (servings: number) => void;
 }
 
 export function RecipeDetailModal({
@@ -55,7 +56,8 @@ export function RecipeDetailModal({
   setTargetServings,
 }: RecipeDetailModalProps) {
   const videoId = recipe.strYoutube ? getYouTubeVideoId(recipe.strYoutube) : null;
-  const isDownloaded = downloadedIds[recipe.idMeal];
+  const { isFavorite } = useFavorites();
+  const isDownloaded = Boolean(downloadedIds[recipe.idMeal]) && isFavorite(`online-${recipe.idMeal}`);
   const { addRecipeIngredients } = useShoppingList();
   const [isAddedToCart, setIsAddedToCart] = useState(false);
 
