@@ -82,7 +82,7 @@ export default function RecipeFinderScreen() {
   const featuredRecipes = useMemo(() => recipes.slice(0, 5), [recipes]);
   const popularRecipes = useMemo(() => recipes.slice(5), [recipes]);
 
- 
+
 
 
   return (

@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import * as Haptics from 'expo-haptics';
 import { useFavorites } from '../../../favorite/presentation/hooks/useFavorites';
-import { SQLiteRecipeRepository } from '../../../recipe/data/repositories/SQLiteRecipeRepository';
+import { recipeRepository } from '../../../recipe/di/RecipeContainer';
+import { fetchOnlineRecipesUseCase } from '../../di/BrowseContainer';
 import { OnlineRecipe } from '../../types';
-
-const recipeRepo = new SQLiteRecipeRepository();
 
 export function useBrowseRecipes() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,64 +35,8 @@ export function useBrowseRecipes() {
   ) => {
     setIsLoading(true);
     try {
-      let url = 'https://www.themealdb.com/api/json/v1/1/search.php?s=';
-      if (query.trim() !== '') {
-        url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query.trim())}`;
-      } else if (country !== 'All') {
-        url = `https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(country)}`;
-      } else if (mealType !== 'All') {
-        url = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(mealType)}`;
-      } else {
-        url = 'https://www.themealdb.com/api/json/v1/1/search.php?s=chicken';
-      }
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.meals) {
-        const mealsToProcess = data.meals.slice(0, 24);
-        const parsed: OnlineRecipe[] = await Promise.all(
-          mealsToProcess.map(async (meal: any) => {
-            let fullMeal = meal;
-            if (!meal.strInstructions) {
-              try {
-                const detailRes = await fetch(
-                  `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`
-                );
-                const detailData = await detailRes.json();
-                if (detailData.meals && detailData.meals[0]) {
-                  fullMeal = detailData.meals[0];
-                }
-              } catch {
-                // fallback to partial data
-              }
-            }
-
-            const ingredients: { name: string; measure: string }[] = [];
-            for (let i = 1; i <= 20; i++) {
-              const name = fullMeal[`strIngredient${i}`];
-              const measure = fullMeal[`strMeasure${i}`];
-              if (name && name.trim() !== '') {
-                ingredients.push({ name: name.trim(), measure: measure ? measure.trim() : '' });
-              }
-            }
-
-            return {
-              idMeal: fullMeal.idMeal,
-              strMeal: fullMeal.strMeal,
-              strCategory: fullMeal.strCategory || (mealType !== 'All' ? mealType : 'General'),
-              strArea: fullMeal.strArea || (country !== 'All' ? country : 'International'),
-              strMealThumb: fullMeal.strMealThumb,
-              strInstructions: fullMeal.strInstructions || '',
-              strYoutube: fullMeal.strYoutube,
-              ingredients,
-            };
-          })
-        );
-        setRecipes(parsed);
-      } else {
-        setRecipes([]);
-      }
+      const data = await fetchOnlineRecipesUseCase.execute(query, country, mealType);
+      setRecipes(data);
     } catch {
       setRecipes([]);
     } finally {
@@ -143,7 +86,7 @@ export function useBrowseRecipes() {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       setIsDownloading(true);
-      await recipeRepo.saveFullOnlineRecipe(recipe);
+      await recipeRepository.saveFullOnlineRecipe(recipe);
       setDownloadedIds((prev) => ({ ...prev, [recipe.idMeal]: true }));
       if (!isFavorite(`online-${recipe.idMeal}`)) {
         await toggleFavorite(`online-${recipe.idMeal}`);

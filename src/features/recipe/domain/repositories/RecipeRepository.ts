@@ -12,4 +12,14 @@ export interface RecipeRepository {
     maxCalories?: number
   ): Promise<Recipe[]>;
   getFavoritesByIds(ids: string[]): Promise<Recipe[]>;
+  saveFullOnlineRecipe(recipe: {
+    idMeal: string;
+    strMeal: string;
+    strCategory: string;
+    strArea: string;
+    strMealThumb: string;
+    strInstructions: string;
+    ingredients: { name: string; measure: string }[];
+  }): Promise<void>;
+  isRecipeDownloaded(idMeal: string): Promise<boolean>;
 }

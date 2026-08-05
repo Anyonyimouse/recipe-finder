@@ -1,7 +1,9 @@
 import { create } from 'zustand';
-import { SQLiteFavoriteRepository } from '../../data/repositories/SQLiteFavoriteRepository';
-
-const repo = new SQLiteFavoriteRepository();
+import {
+  clearFavoritesUseCase,
+  getFavoritesUseCase,
+  toggleFavoriteUseCase,
+} from '../../di/FavoriteContainer';
 
 interface FavoriteState {
   favoriteIds: string[];
@@ -19,7 +21,7 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
   loadFavorites: async () => {
     set({ isLoading: true });
     try {
-      const ids = await repo.getFavoriteIds();
+      const ids = await getFavoritesUseCase.execute();
       set({ favoriteIds: ids, isLoading: false });
     } catch {
       set({ isLoading: false });
@@ -28,13 +30,11 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
 
   toggleFavorite: async (recipeId: string) => {
     const { favoriteIds } = get();
-    const exists = favoriteIds.includes(recipeId);
-    if (exists) {
-      set({ favoriteIds: favoriteIds.filter((id) => id !== recipeId) });
-      await repo.removeFavorite(recipeId);
-    } else {
-      set({ favoriteIds: [recipeId, ...favoriteIds] });
-      await repo.addFavorite(recipeId);
+    try {
+      const updated = await toggleFavoriteUseCase.execute(recipeId, favoriteIds);
+      set({ favoriteIds: updated });
+    } catch {
+      // safe fallback
     }
   },
 
@@ -43,7 +43,11 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
   },
 
   clearAllFavorites: async () => {
-    set({ favoriteIds: [] });
-    await repo.clearAllFavorites();
+    try {
+      await clearFavoritesUseCase.execute();
+      set({ favoriteIds: [] });
+    } catch {
+      // safe fallback
+    }
   },
 }));

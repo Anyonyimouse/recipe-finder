@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { SyncStatus } from '../../../../types/sync';
 import { SQLiteSyncRepository } from '../../data/repositories/SQLiteSyncRepository';
 

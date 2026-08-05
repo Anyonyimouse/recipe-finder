@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Ingredient } from '../../../../types/ingredient';
 import { SQLiteIngredientRepository } from '../../data/repositories/SQLiteIngredientRepository';
 
