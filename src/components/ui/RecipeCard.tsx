@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
 import { Image } from 'expo-image';
+import { ChefHat, Clock, Heart } from 'lucide-react-native';
+import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Recipe } from '../../types/recipe';
-import { Clock, Heart, ChefHat } from 'lucide-react-native';
 import { getRecipeImageSource } from '../../constants/recipeImages';
+import { Recipe } from '../../types/recipe';
 
 interface RecipeCardProps {
   recipe: Recipe;

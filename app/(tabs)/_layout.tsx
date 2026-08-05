@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Compass, Heart, Home } from 'lucide-react-native';
+import { Calendar, Compass, Heart, Home, ShoppingBag } from 'lucide-react-native';
 import React from 'react';
 
 export default function TabLayout() {
@@ -23,21 +23,12 @@ export default function TabLayout() {
           shadowRadius: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
         },
       }}
     >
-      {/* 1. Browse Tab */}
-      <Tabs.Screen
-        name="browse"
-        options={{
-          title: 'Browse',
-          tabBarIcon: ({ color, size }) => <Compass color={color} size={size} />,
-        }}
-      />
-
-      {/* 2. Home Tab */}
+      {/* 1. Home Tab */}
       <Tabs.Screen
         name="index"
         options={{
@@ -46,7 +37,34 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 3. Favorites Tab */}
+      {/* 2. Browse Tab */}
+      <Tabs.Screen
+        name="browse"
+        options={{
+          title: 'Browse',
+          tabBarIcon: ({ color, size }) => <Compass color={color} size={size} />,
+        }}
+      />
+
+      {/* 3. Meal Planner Tab */}
+      <Tabs.Screen
+        name="planner"
+        options={{
+          title: 'Planner',
+          tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
+        }}
+      />
+
+      {/* 4. Shopping List Tab */}
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Cart',
+          tabBarIcon: ({ color, size }) => <ShoppingBag color={color} size={size} />,
+        }}
+      />
+
+      {/* 5. Favorites Tab */}
       <Tabs.Screen
         name="favorites"
         options={{

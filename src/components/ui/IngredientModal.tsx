@@ -10,9 +10,11 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, X, Check, Trash2 } from 'lucide-react-native';
+import { Search, X, Check, Trash2, Scan, Sparkles } from 'lucide-react-native';
 import { Ingredient } from '../../types/ingredient';
 import { IngredientChip } from './IngredientChip';
+import { BarcodeScannerModal } from '../../features/barcode_scanner/presentation/components/BarcodeScannerModal';
+import { FridgeScannerModal } from '../../features/ai_scanner/presentation/components/FridgeScannerModal';
 
 interface IngredientModalProps {
   visible: boolean;
@@ -33,6 +35,8 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
 }) => {
   const [modalSearch, setModalSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
+  const [isFridgeScannerOpen, setIsFridgeScannerOpen] = useState(false);
 
   const categories = ['All', 'Produce', 'Meat', 'Seafood', 'Pantry', 'Dairy'];
 
@@ -41,6 +45,22 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
     const matchesCategory = selectedCategory === 'All' || ing.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleBarcodeAdd = (scannedName: string) => {
+    const match = ingredients.find((i) => i.name.toLowerCase() === scannedName.toLowerCase());
+    if (match && !selectedIds.includes(match.id)) {
+      onToggleIngredient(match.id);
+    }
+  };
+
+  const handleAiDetected = (detectedList: string[]) => {
+    for (const name of detectedList) {
+      const match = ingredients.find((i) => i.name.toLowerCase() === name.toLowerCase());
+      if (match && !selectedIds.includes(match.id)) {
+        onToggleIngredient(match.id);
+      }
+    }
+  };
 
   return (
     <Modal
@@ -55,7 +75,7 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
         <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF' }}>
           <View>
             <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827' }}>
-              Ingredients
+              My Pantry
             </Text>
             <Text style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
               {ingredients.length} items available · {selectedIds.length} selected
@@ -69,8 +89,27 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
           </Pressable>
         </View>
 
+        {/* AI & Barcode Quick Action Buttons */}
+        <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingTop: 12, gap: 10, backgroundColor: '#FFFFFF' }}>
+          <Pressable
+            onPress={() => setIsFridgeScannerOpen(true)}
+            style={{ flex: 1, backgroundColor: '#FEF3C7', borderColor: '#FCD34D', borderWidth: 1, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+          >
+            <Sparkles size={16} color="#D97706" strokeWidth={2.5} />
+            <Text style={{ fontSize: 12, fontWeight: '800', color: '#92400E' }}>AI Fridge Scan</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setIsBarcodeScannerOpen(true)}
+            style={{ flex: 1, backgroundColor: '#F0FDF4', borderColor: '#86EFAC', borderWidth: 1, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+          >
+            <Scan size={16} color="#16A34A" strokeWidth={2.5} />
+            <Text style={{ fontSize: 12, fontWeight: '800', color: '#166534' }}>Barcode Scan</Text>
+          </Pressable>
+        </View>
+
         {/* Search */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4, backgroundColor: '#FFFFFF' }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, backgroundColor: '#FFFFFF' }}>
           <View style={{ backgroundColor: '#F3F4F6', borderRadius: 14, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 4, marginBottom: 14 }}>
             <Search size={16} color="#9CA3AF" strokeWidth={2} />
             <TextInput
@@ -165,6 +204,19 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
             </Text>
           </Pressable>
         </View>
+
+        {/* Scanners */}
+        <BarcodeScannerModal
+          visible={isBarcodeScannerOpen}
+          onClose={() => setIsBarcodeScannerOpen(false)}
+          onScanSuccess={handleBarcodeAdd}
+        />
+
+        <FridgeScannerModal
+          visible={isFridgeScannerOpen}
+          onClose={() => setIsFridgeScannerOpen(false)}
+          onIngredientsDetected={handleAiDetected}
+        />
       </SafeAreaView>
     </Modal>
   );

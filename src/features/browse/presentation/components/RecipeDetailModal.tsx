@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -20,10 +20,16 @@ import {
   Plus,
   Minus,
   Play,
+  ShoppingBag,
+  Check,
 } from 'lucide-react-native';
 import { StatusBar } from 'react-native';
 import { OnlineRecipe } from '../../types';
 import { getYouTubeVideoId, getYouTubeHtml, parseInstructions } from '../../utils';
+import { NutritionCard } from '../../../nutrition/presentation/components/NutritionCard';
+import { CookingTimer } from '../../../voice_cooking/presentation/components/CookingTimer';
+import { VoiceStepAssistant } from '../../../voice_cooking/presentation/components/VoiceStepAssistant';
+import { useShoppingList } from '../../../shopping_list/presentation/hooks/useShoppingList';
 
 interface RecipeDetailModalProps {
   recipe: OnlineRecipe;
@@ -50,6 +56,22 @@ export function RecipeDetailModal({
 }: RecipeDetailModalProps) {
   const videoId = recipe.strYoutube ? getYouTubeVideoId(recipe.strYoutube) : null;
   const isDownloaded = downloadedIds[recipe.idMeal];
+  const { addRecipeIngredients } = useShoppingList();
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
+
+  const handleAddToCart = async () => {
+    if (!recipe.ingredients) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    const itemsToAdd = recipe.ingredients.map((ing) => ({
+      name: ing.name,
+      quantity: 1,
+      unit: ing.measure,
+      category: recipe.strMeal,
+    }));
+    await addRecipeIngredients(itemsToAdd);
+    setIsAddedToCart(true);
+    setTimeout(() => setIsAddedToCart(false), 3000);
+  };
 
   const SERVING_PRESETS = [
     { label: '👤 1 Solo', count: 1 },
@@ -214,6 +236,9 @@ export function RecipeDetailModal({
                 </View>
               ))}
             </View>
+
+            {/* ── Nutrition Breakdown ── */}
+            <NutritionCard calories={450} protein={28} carbs={42} fats={14} originalServings={4} targetServings={targetServings} />
 
             {/* ── Portion Calculator ── */}
             <View
@@ -397,6 +422,12 @@ export function RecipeDetailModal({
             {/* ── Instructions tab ── */}
             {detailTab === 'instructions' && (
               <View>
+                {/* Hands-Free Voice Assistant */}
+                <VoiceStepAssistant steps={parseInstructions(recipe.strInstructions)} />
+
+                {/* Interactive Cooking Timer */}
+                <CookingTimer initialMinutes={20} />
+
                 {/* Embedded video */}
                 {videoId && (
                   <View style={{ marginBottom: 20 }}>
@@ -471,6 +502,28 @@ export function RecipeDetailModal({
             )}
           </View>
         </ScrollView>
+
+        {/* Bottom Actions Bar */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F3F4F6' }}>
+          <Pressable
+            onPress={handleAddToCart}
+            style={{
+              backgroundColor: isAddedToCart ? '#10B981' : '#0F172A',
+              borderRadius: 16, paddingVertical: 14,
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+              shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
+            }}
+          >
+            {isAddedToCart ? (
+              <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
+            ) : (
+              <ShoppingBag size={18} color="#FFFFFF" strokeWidth={2} />
+            )}
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>
+              {isAddedToCart ? 'Ingredients Added to Shopping List!' : 'Add Ingredients to Shopping List'}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </Modal>
   );

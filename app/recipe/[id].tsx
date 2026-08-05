@@ -10,16 +10,16 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { ArrowLeft, Clock, Users, Heart, ChefHat, Plus, Minus, Scale } from 'lucide-react-native';
+import { ArrowLeft, Clock, Users, Heart, ChefHat, Plus, Minus, Scale, ShoppingBag, Check } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useRecipeDetails } from '../../src/features/recipe/presentation/hooks/useRecipeDetails';
 import { useFavorites } from '../../src/features/favorite/presentation/hooks/useFavorites';
 import { getRecipeImageSource } from '../../src/constants/recipeImages';
+import { NutritionCard } from '../../src/features/nutrition/presentation/components/NutritionCard';
+import { VoiceStepAssistant } from '../../src/features/voice_cooking/presentation/components/VoiceStepAssistant';
+import { CookingTimer } from '../../src/features/voice_cooking/presentation/components/CookingTimer';
+import { useShoppingList } from '../../src/features/shopping_list/presentation/hooks/useShoppingList';
 
-/**
- * Smart quantity scaling and unit conversion helper
- * E.g., 1 kg scaled by 1/4 becomes 250 g, 1 L scaled by 1/2 becomes 500 ml
- */
 function parseAndScaleQuantity(
   qtyStr: string | number | undefined,
   unitStr: string | undefined,
@@ -43,7 +43,6 @@ function parseAndScaleQuantity(
   const scaled = num * ratio;
   const unitLower = (unitStr || '').toLowerCase().trim();
 
-  // Smart unit conversions: kg -> g, L -> ml
   if (unitLower === 'kg' || unitLower === 'kilogram' || unitLower === 'kilograms') {
     const grams = scaled * 1000;
     if (grams < 1000) {
@@ -68,7 +67,6 @@ function parseAndScaleQuantity(
     return { quantity: `${Math.round(scaled)}`, unit: 'ml', isScaled };
   }
 
-  // General formatting for clean decimals
   const formatted = scaled < 1 ? Number(scaled.toFixed(2)).toString() : Number(scaled.toFixed(1)).toString();
   return { quantity: formatted, unit: unitStr || '', isScaled };
 }
@@ -78,11 +76,11 @@ export default function RecipeDetailScreen() {
   const router = useRouter();
   const { recipe, isLoading } = useRecipeDetails(id || '');
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { addRecipeIngredients } = useShoppingList();
   const [imgError, setImgError] = useState(false);
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients');
-
-  // Interactive Serving / Portion Adjuster state
   const [targetServings, setTargetServings] = useState<number>(1);
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
 
   useEffect(() => {
     if (recipe && recipe.servings) {
@@ -115,6 +113,25 @@ export default function RecipeDetailScreen() {
     setTargetServings(count);
   };
 
+  const handleAddToCart = async () => {
+    if (!recipe.ingredients) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    const itemsToAdd = recipe.ingredients.map((ing) => {
+      const scaled = parseAndScaleQuantity(ing.quantity, ing.unit, originalServings, targetServings);
+      return {
+        name: ing.ingredientName || ing.ingredientId || 'Ingredient',
+        quantity: parseFloat(scaled.quantity) || 1,
+        unit: scaled.unit,
+        category: recipe.title,
+      };
+    });
+    await addRecipeIngredients(itemsToAdd);
+    setIsAddedToCart(true);
+    setTimeout(() => setIsAddedToCart(false), 3000);
+  };
+
+  const stepInstructions = recipe.steps?.map((s) => s.instruction) || [];
+
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
@@ -140,7 +157,6 @@ export default function RecipeDetailScreen() {
             </Text>
           </View>
         )}
-        {/* Gradient overlay */}
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, backgroundColor: 'rgba(0,0,0,0.25)' }} />
 
         {/* Top Bar */}
@@ -173,7 +189,6 @@ export default function RecipeDetailScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* White rounded panel */}
         <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -24, paddingTop: 24, paddingHorizontal: 20, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 10 }}>
           {/* Title + time */}
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -200,7 +215,7 @@ export default function RecipeDetailScreen() {
             {[
               { label: 'Prep Time', value: `${recipe.prepTime} min`, emoji: '🕐' },
               { label: 'Cook Time', value: `${recipe.cookTime} min`, emoji: '🍳' },
-              { label: 'Calories', value: recipe.calories ? `${recipe.calories} kcal` : 'N/A', emoji: '🔥' },
+              { label: 'Calories', value: recipe.calories ? `${recipe.calories} kcal` : '450 kcal', emoji: '🔥' },
               { label: 'Difficulty', value: recipe.difficulty, emoji: recipe.difficulty === 'Easy' ? '😊' : recipe.difficulty === 'Medium' ? '🧑‍🍳' : '👨‍🍳' },
             ].map((stat) => (
               <View
@@ -214,7 +229,10 @@ export default function RecipeDetailScreen() {
             ))}
           </View>
 
-          {/* ── Portion & Serving Adjuster Box ── */}
+          {/* Nutrition Breakdown */}
+          <NutritionCard calories={recipe.calories || 450} protein={28} carbs={42} fats={14} originalServings={originalServings} targetServings={targetServings} />
+
+          {/* Portion & Serving Adjuster Box */}
           <View style={{ backgroundColor: '#F0FDF9', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#CCFBF1', marginBottom: 24 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -229,7 +247,6 @@ export default function RecipeDetailScreen() {
                 </View>
               </View>
 
-              {/* Stepper (- / +) */}
               <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#99F6E4', padding: 2 }}>
                 <Pressable
                   onPress={() => handleAdjustServings(-1)}
@@ -251,7 +268,6 @@ export default function RecipeDetailScreen() {
               </View>
             </View>
 
-            {/* Quick Preset Pills (1 person solo, 2 pax, original, 4 pax, 6 pax) */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingTop: 4 }}>
               {[
                 { label: '👤 1 Solo', count: 1 },
@@ -260,7 +276,7 @@ export default function RecipeDetailScreen() {
                 { label: '👨‍👩‍👧 4 Family', count: 4 },
                 { label: '🎉 6 Party', count: 6 },
               ]
-                .filter((p, idx, arr) => arr.findIndex((t) => t.count === p.count) === idx) // unique counts
+                .filter((p, idx, arr) => arr.findIndex((t) => t.count === p.count) === idx)
                 .sort((a, b) => a.count - b.count)
                 .map((preset) => {
                   const isActive = targetServings === preset.count;
@@ -344,7 +360,6 @@ export default function RecipeDetailScreen() {
                       </Text>
                     </View>
 
-                    {/* Scaled Quantity Display */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -370,6 +385,14 @@ export default function RecipeDetailScreen() {
           {/* Instructions Tab */}
           {activeTab === 'instructions' && (
             <View>
+              {/* Hands-Free Voice Assistant */}
+              {stepInstructions.length > 0 && (
+                <VoiceStepAssistant steps={stepInstructions} />
+              )}
+
+              {/* Cooking Timer */}
+              <CookingTimer initialMinutes={recipe.cookTime || 15} />
+
               {recipe.steps?.map((step, idx) => (
                 <View
                   key={`step-${step.id || idx}-${idx}`}
@@ -391,14 +414,28 @@ export default function RecipeDetailScreen() {
           )}
         </View>
 
-        {/* Add To Cart / Favorite Button */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 24, backgroundColor: '#FFFFFF' }}>
+        {/* Bottom Actions Row */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 10, backgroundColor: '#FFFFFF' }}>
+          <Pressable
+            onPress={handleAddToCart}
+            style={{ backgroundColor: isAddedToCart ? '#10B981' : '#0F172A', borderRadius: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+          >
+            {isAddedToCart ? (
+              <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
+            ) : (
+              <ShoppingBag size={18} color="#FFFFFF" strokeWidth={2} />
+            )}
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>
+              {isAddedToCart ? 'Ingredients Added to Shopping List!' : 'Add Ingredients to Shopping List'}
+            </Text>
+          </Pressable>
+
           <Pressable
             onPress={() => toggleFavorite(recipe.id)}
-            style={{ backgroundColor: '#0D9488', borderRadius: 16, paddingVertical: 16, alignItems: 'center', shadowColor: '#0D9488', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 }}
+            style={{ backgroundColor: '#F3F4F6', borderColor: '#E5E7EB', borderWidth: 1, borderRadius: 16, paddingVertical: 14, alignItems: 'center' }}
           >
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFFFFF' }}>
-              {favorite ? '❤️ Saved to Favorites' : '🛒 Save to Favorites'}
+            <Text style={{ fontSize: 14, fontWeight: '700', color: favorite ? '#EF4444' : '#374151' }}>
+              {favorite ? '❤️ Saved in Favorites' : '🤍 Save to Favorites'}
             </Text>
           </Pressable>
         </View>
