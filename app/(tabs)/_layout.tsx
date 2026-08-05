@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Calendar, Compass, Heart, Home, ShoppingBag } from 'lucide-react-native';
+import { Calendar, Compass, Home, ShoppingBag } from 'lucide-react-native';
 import React from 'react';
 
 export default function TabLayout() {
@@ -64,14 +64,6 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 5. Favorites Tab */}
-      <Tabs.Screen
-        name="favorites"
-        options={{
-          title: 'Favorites',
-          tabBarIcon: ({ color, size }) => <Heart color={color} size={size} />,
-        }}
-      />
     </Tabs>
   );
 }

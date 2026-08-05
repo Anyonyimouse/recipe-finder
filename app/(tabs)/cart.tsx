@@ -3,6 +3,7 @@ import {
   CheckSquare,
   ChevronDown,
   ChevronUp,
+  Heart,
   Pin,
   Plus,
   ShoppingBag,
@@ -12,13 +13,13 @@ import {
   Maximize2,
   CheckCircle2,
 } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   LayoutAnimation,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -27,9 +28,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useShoppingList } from '../../src/features/shopping_list/presentation/hooks/useShoppingList';
 import { ShoppingListItem } from '../../src/types/shopping_list';
+import { useFavorites } from '../../src/features/favorite/presentation/hooks/useFavorites';
+import { SQLiteRecipeRepository } from '../../src/features/recipe/data/repositories/SQLiteRecipeRepository';
+import { RecipeCard } from '../../src/components/ui/RecipeCard';
+import { Recipe } from '../../src/types/recipe';
+
+const recipeRepo = new SQLiteRecipeRepository();
 
 const CATEGORY_EMOJIS: Record<string, string> = {
   Produce: '🥬',
@@ -49,24 +56,56 @@ const KEEP_BG_COLORS = [
 ];
 
 export default function ShoppingListScreen() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'list' | 'favorites'>('list');
+
+  // ── Shopping List state ─────────────────────────────────────────────────
   const { items, isLoading, addItem, toggleItem, clearChecked, deleteCategories, reload } = useShoppingList();
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState('1');
-
-  // Modal Note View state
   const [activeModalCategory, setActiveModalCategory] = useState<string | null>(null);
   const [modalItemName, setModalItemName] = useState('');
-
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [pinnedCategories, setPinnedCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
+  // ── Favorites state ─────────────────────────────────────────────────────
+  const { favoriteIds, toggleFavorite, isFavorite, clearAllFavorites } = useFavorites();
+  const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
+  const [favLoading, setFavLoading] = useState(false);
+
+  const loadFavorites = useCallback(async () => {
+    setFavLoading(true);
+    try {
+      const recipes = await recipeRepo.getFavoritesByIds(favoriteIds);
+      setFavoriteRecipes(recipes);
+    } catch {
+      // safe
+    } finally {
+      setFavLoading(false);
+    }
+  }, [favoriteIds]);
+
+  useEffect(() => { loadFavorites(); }, [loadFavorites]);
+
   useFocusEffect(
     React.useCallback(() => {
       reload();
-    }, [reload])
+      loadFavorites();
+    }, [reload, loadFavorites])
   );
+
+  function handleUnfavoriteAll() {
+    Alert.alert(
+      'Remove All Favorites',
+      'Are you sure you want to remove all favorites?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove All', style: 'destructive', onPress: () => clearAllFavorites() },
+      ]
+    );
+  }
 
   const handleAddItem = async () => {
     if (!newItemName.trim()) return;
@@ -159,72 +198,107 @@ export default function ShoppingListScreen() {
   const modalEmoji = activeModalCategory ? CATEGORY_EMOJIS[activeModalCategory] || '🍲' : '🍲';
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
       {/* Header */}
-      <View className="bg-gray-50 px-5 pt-3 pb-3 border-b border-black/5 flex-row items-center justify-between z-10">
+      <View style={{ backgroundColor: '#F9FAFB', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
         {isSelectionMode ? (
-          <View className="flex-row items-center justify-between flex-1">
-            <View className="flex-row items-center gap-2">
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Pressable
                 onPress={() => {
                   setIsSelectionMode(false);
                   setSelectedCategories([]);
                 }}
-                className="w-8 h-8 rounded-full bg-gray-200 items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={16} color="#374151" strokeWidth={2.5} />
               </Pressable>
-              <Text className="text-lg font-black text-slate-900">
+              <Text style={{ fontSize: 18, fontWeight: '900', color: '#0F172A' }}>
                 {selectedCategories.length} Card{selectedCategories.length > 1 ? 's' : ''} Selected
               </Text>
             </View>
-
             <Pressable
               onPress={handleDeleteSelected}
-              className="flex-row items-center bg-red-600 px-3.5 py-1.5 rounded-full gap-1.5"
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#DC2626', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 50, gap: 6 }}
             >
               <Trash2 size={14} color="#FFFFFF" strokeWidth={2.5} />
-              <Text className="text-xs font-extrabold text-white">Delete Selected</Text>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>Delete Selected</Text>
             </Pressable>
           </View>
         ) : (
           <>
             <View>
-              <Text className="text-2xl font-black text-slate-900 tracking-tight">Shopping List</Text>
-              <Text className="text-xs text-gray-500 font-medium mt-0.5">
-                {items.length > 0
-                  ? `${checkedCount} of ${items.length} items checked`
-                  : 'Your list is empty'}
+              <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A', letterSpacing: -0.5 }}>
+                {activeTab === 'list' ? 'Shopping List' : 'Favorites'}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '500', marginTop: 1 }}>
+                {activeTab === 'list'
+                  ? (items.length > 0 ? `${checkedCount} of ${items.length} items checked` : 'Your list is empty')
+                  : `${favoriteRecipes.length} saved recipe${favoriteRecipes.length !== 1 ? 's' : ''}`
+                }
               </Text>
             </View>
-
-            {checkedCount > 0 && (
+            {activeTab === 'list' && checkedCount > 0 && (
               <Pressable
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
                   clearChecked();
                 }}
-                className="flex-row items-center bg-red-50 border border-red-200 px-3 py-1.5 rounded-full gap-1"
+                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50, gap: 4 }}
               >
                 <Trash2 size={13} color="#EF4444" strokeWidth={2} />
-                <Text className="text-xs font-semibold text-red-600">Clear Checked</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#EF4444' }}>Clear Checked</Text>
+              </Pressable>
+            )}
+            {activeTab === 'favorites' && favoriteRecipes.length > 0 && (
+              <Pressable
+                onPress={handleUnfavoriteAll}
+                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50, gap: 4 }}
+              >
+                <Trash2 size={13} color="#EF4444" strokeWidth={2} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#EF4444' }}>Remove All</Text>
               </Pressable>
             )}
           </>
         )}
       </View>
 
-      {/* Add Item Bar */}
+      {/* Segmented Tab Switcher */}
       {!isSelectionMode && (
-        <View className="p-4 bg-white border-b border-gray-100 flex-row gap-2 items-center">
+        <View style={{ flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: '#F3F4F6', borderRadius: 14, padding: 3 }}>
+          <Pressable
+            onPress={() => setActiveTab('list')}
+            style={{ flex: 1, paddingVertical: 8, borderRadius: 11, backgroundColor: activeTab === 'list' ? '#FFFFFF' : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, shadowColor: activeTab === 'list' ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: activeTab === 'list' ? 2 : 0 }}
+          >
+            <ShoppingBag size={14} color={activeTab === 'list' ? '#0D9488' : '#9CA3AF'} strokeWidth={2.5} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: activeTab === 'list' ? '#0D9488' : '#9CA3AF' }}>Shopping List</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setActiveTab('favorites')}
+            style={{ flex: 1, paddingVertical: 8, borderRadius: 11, backgroundColor: activeTab === 'favorites' ? '#FFFFFF' : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, shadowColor: activeTab === 'favorites' ? '#000' : 'transparent', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: activeTab === 'favorites' ? 2 : 0 }}
+          >
+            <Heart size={14} color={activeTab === 'favorites' ? '#EF4444' : '#9CA3AF'} strokeWidth={2.5} fill={activeTab === 'favorites' ? '#EF4444' : 'transparent'} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: activeTab === 'favorites' ? '#EF4444' : '#9CA3AF' }}>Favorites</Text>
+            {favoriteRecipes.length > 0 && (
+              <View style={{ backgroundColor: activeTab === 'favorites' ? '#EF4444' : '#D1D5DB', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>{favoriteRecipes.length}</Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
+      )}
+
+      {/* Add Item Bar — only for Shopping List tab */}
+      {!isSelectionMode && activeTab === 'list' && (
+        <View style={{ padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           <TextInput
             placeholder="Add extra item (e.g. Garlic)..."
             placeholderTextColor="#9CA3AF"
             value={newItemName}
             onChangeText={setNewItemName}
-            className="flex-1 bg-gray-100 rounded-xl px-3.5 py-2.5 text-sm color-gray-900 font-medium"
+            style={{ flex: 1, backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111827', fontWeight: '500' }}
           />
           <TextInput
             placeholder="Qty"
@@ -232,19 +306,60 @@ export default function ShoppingListScreen() {
             value={newItemQty}
             onChangeText={setNewItemQty}
             keyboardType="numeric"
-            className="w-14 bg-gray-100 rounded-xl px-2.5 py-2.5 text-sm color-gray-900 text-center font-medium"
+            style={{ width: 56, backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 10, fontSize: 14, color: '#111827', textAlign: 'center', fontWeight: '500' }}
           />
           <Pressable
             onPress={handleAddItem}
-            className="w-10 h-10 rounded-xl bg-teal-600 items-center justify-center"
+            style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#0D9488', alignItems: 'center', justifyContent: 'center' }}
           >
             <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
           </Pressable>
         </View>
       )}
 
-      {/* Content — Google Keep Notes 2-Column Grid */}
-      {isLoading ? (
+      {/* Favorites Content */}
+      {activeTab === 'favorites' && (
+        favLoading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color="#EF4444" />
+            <Text style={{ color: '#9CA3AF', fontSize: 13, marginTop: 10 }}>Loading favorites...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={favoriteRecipes}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+            columnWrapperStyle={{ gap: 12 }}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={{ flex: 1 }}>
+                <RecipeCard
+                  recipe={item}
+                  isFavorite={isFavorite(item.id)}
+                  onPress={(id) => router.push({ pathname: '/recipe/[id]', params: { id } } as any)}
+                  onToggleFavorite={toggleFavorite}
+                />
+              </View>
+            )}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
+                <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                  <Heart size={32} color="#EF4444" strokeWidth={1.75} />
+                </View>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 6 }}>No Favorites Yet</Text>
+                <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingHorizontal: 32, lineHeight: 20 }}>
+                  Download a recipe from Browse to save it for quick offline access.
+                </Text>
+              </View>
+            }
+          />
+        )
+      )}
+
+      {/* Content — Google Keep Notes 2-Column Grid (Shopping List only) */}
+      {activeTab === 'list' && (isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#0D9488" />
         </View>
@@ -455,7 +570,7 @@ export default function ShoppingListScreen() {
             );
           }}
         />
-      )}
+      ))}
 
       {/* ── Google Keep Full Note Modal ── */}
       <Modal
