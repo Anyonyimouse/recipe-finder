@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 export const recipeImageMap: Record<string, any> = {
   // American
   'ph-rec-52': require('../../assets/images/americanCuisine/pancake_bacon.jfif'),

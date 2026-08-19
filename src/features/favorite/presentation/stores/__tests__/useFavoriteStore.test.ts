@@ -1,6 +1,6 @@
 import { useFavoriteStore } from '../favoriteStore';
 
-jest.mock('../../di/FavoriteContainer', () => ({
+jest.mock('../../../di/FavoriteContainer', () => ({
   getFavoritesUseCase: {
     execute: jest.fn().mockResolvedValue(['fav-1', 'fav-2']),
   },
