@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import * as Haptics from 'expo-haptics';
 import { useFavorites } from '../../../favorite/presentation/hooks/useFavorites';
 import { recipeRepository } from '../../../recipe/di/RecipeContainer';
@@ -28,7 +28,7 @@ export function useBrowseRecipes() {
 
   // ── Fetch logic ──────────────────────────────────────────────────────────
 
-  const fetchOnlineRecipes = async (
+  const fetchOnlineRecipes = useCallback(async (
     query = searchQuery,
     country = selectedCountry,
     mealType = selectedMealType
@@ -42,11 +42,11 @@ export function useBrowseRecipes() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, selectedCountry, selectedMealType]);
 
   useEffect(() => {
     fetchOnlineRecipes('', 'All', 'All');
-  }, []);
+  }, [fetchOnlineRecipes]);
 
   // ── Derived data ─────────────────────────────────────────────────────────
 

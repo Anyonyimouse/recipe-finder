@@ -1,17 +1,10 @@
 import * as Haptics from 'expo-haptics';
 import {
-  CheckSquare,
-  ChevronDown,
-  ChevronUp,
   Heart,
-  Pin,
   Plus,
   ShoppingBag,
-  Square,
   Trash2,
   X,
-  Maximize2,
-  CheckCircle2,
 } from 'lucide-react-native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
@@ -19,9 +12,7 @@ import {
   Alert,
   FlatList,
   LayoutAnimation,
-  Modal,
   Pressable,
-  ScrollView,
   StatusBar,
   Text,
   TextInput,
@@ -32,28 +23,11 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useShoppingList } from '../../src/features/shopping_list/presentation/hooks/useShoppingList';
 import { ShoppingListItem } from '../../src/types/shopping_list';
 import { useFavorites } from '../../src/features/favorite/presentation/hooks/useFavorites';
-import { SQLiteRecipeRepository } from '../../src/features/recipe/data/repositories/SQLiteRecipeRepository';
-import { RecipeCard } from '../../src/components/ui/RecipeCard';
+import { recipeRepository } from '../../src/features/recipe/di/RecipeContainer';
+import { ShoppingListCard } from '../../src/features/shopping_list/presentation/components/ShoppingListCard';
+import { CategoryModal } from '../../src/features/shopping_list/presentation/components/CategoryModal';
+import { FavoriteRecipeList } from '../../src/features/favorite/presentation/components/FavoriteRecipeList';
 import { Recipe } from '../../src/types/recipe';
-
-const recipeRepo = new SQLiteRecipeRepository();
-
-const CATEGORY_EMOJIS: Record<string, string> = {
-  Produce: '🥬',
-  'Meat & Seafood': '🥩',
-  Dairy: '🧀',
-  Spices: '🧂',
-  General: '🛒',
-};
-
-// Pastel card backgrounds like Google Keep
-const KEEP_BG_COLORS = [
-  { bg: '#F0FDF9', border: '#CCFBF1', accent: '#0D9488' }, // Teal
-  { bg: '#FEF3C7', border: '#FDE68A', accent: '#D97706' }, // Amber
-  { bg: '#F0F9FF', border: '#BAE6FD', accent: '#0284C7' }, // Sky
-  { bg: '#FDF2F8', border: '#FBCFE8', accent: '#DB2777' }, // Pink
-  { bg: '#F3E8FF', border: '#E9D5FF', accent: '#9333EA' }, // Purple
-];
 
 export default function ShoppingListScreen() {
   const router = useRouter();
@@ -65,7 +39,6 @@ export default function ShoppingListScreen() {
   const [newItemQty, setNewItemQty] = useState('1');
   const [activeModalCategory, setActiveModalCategory] = useState<string | null>(null);
   const [modalItemName, setModalItemName] = useState('');
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [pinnedCategories, setPinnedCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -78,10 +51,10 @@ export default function ShoppingListScreen() {
   const loadFavorites = useCallback(async () => {
     setFavLoading(true);
     try {
-      const recipes = await recipeRepo.getFavoritesByIds(favoriteIds);
+      const recipes = await recipeRepository.getFavoritesByIds(favoriteIds);
       setFavoriteRecipes(recipes);
     } catch {
-      // safe
+      // safe fallback
     } finally {
       setFavLoading(false);
     }
@@ -120,12 +93,6 @@ export default function ShoppingListScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     await addItem(modalItemName.trim(), 1, '', activeModalCategory);
     setModalItemName('');
-  };
-
-  const toggleCardExpand = (category: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedCards((prev) => ({ ...prev, [category]: !prev[category] }));
   };
 
   const togglePinCategory = (category: string, e: any) => {
@@ -191,11 +158,7 @@ export default function ShoppingListScreen() {
     });
   }, [groupedItemsMap, pinnedCategories]);
 
-  // Modal active items
   const modalItems = activeModalCategory ? groupedItemsMap[activeModalCategory] || [] : [];
-  const modalCheckedCount = modalItems.filter((i) => i.isChecked).length;
-  const modalProgressPercent = modalItems.length > 0 ? Math.round((modalCheckedCount / modalItems.length) * 100) : 0;
-  const modalEmoji = activeModalCategory ? CATEGORY_EMOJIS[activeModalCategory] || '🍲' : '🍲';
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
@@ -319,57 +282,27 @@ export default function ShoppingListScreen() {
 
       {/* Favorites Content */}
       {activeTab === 'favorites' && (
-        favLoading ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator size="large" color="#EF4444" />
-            <Text style={{ color: '#9CA3AF', fontSize: 13, marginTop: 10 }}>Loading favorites...</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={favoriteRecipes}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-            columnWrapperStyle={{ gap: 12 }}
-            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={{ flex: 1 }}>
-                <RecipeCard
-                  recipe={item}
-                  isFavorite={isFavorite(item.id)}
-                  onPress={(id) => router.push({ pathname: '/recipe/[id]', params: { id } } as any)}
-                  onToggleFavorite={toggleFavorite}
-                />
-              </View>
-            )}
-            ListEmptyComponent={
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
-                <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                  <Heart size={32} color="#EF4444" strokeWidth={1.75} />
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 6 }}>No Favorites Yet</Text>
-                <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingHorizontal: 32, lineHeight: 20 }}>
-                  Download a recipe from Browse to save it for quick offline access.
-                </Text>
-              </View>
-            }
-          />
-        )
+        <FavoriteRecipeList
+          favoriteRecipes={favoriteRecipes}
+          isLoading={favLoading}
+          isFavorite={isFavorite}
+          onSelectRecipe={(id) => router.push({ pathname: '/recipe/[id]', params: { id } } as any)}
+          onToggleFavorite={toggleFavorite}
+        />
       )}
 
-      {/* Content — Google Keep Notes 2-Column Grid (Shopping List only) */}
+      {/* Shopping List Content */}
       {activeTab === 'list' && (isLoading ? (
-        <View className="flex-1 items-center justify-center">
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color="#0D9488" />
         </View>
       ) : items.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <View className="w-16 h-16 rounded-2xl bg-gray-100 items-center justify-center mb-3">
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+          <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
             <ShoppingBag size={28} color="#9CA3AF" strokeWidth={1.5} />
           </View>
-          <Text className="text-base font-bold text-gray-700 mb-1">Your Cart is Empty</Text>
-          <Text className="text-xs text-gray-400 text-center leading-5">
+          <Text style={{ fontSize: 16, fontWeight: '700', color: '#374151', marginBottom: 4 }}>Your Cart is Empty</Text>
+          <Text style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', lineHeight: 20 }}>
             Add ingredients from your favorite recipes or type them above to build your grocery list.
           </Text>
         </View>
@@ -381,303 +314,42 @@ export default function ShoppingListScreen() {
           columnWrapperStyle={{ gap: 10 }}
           contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 14, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item: [category, groupItems], index }) => {
-            const emoji = CATEGORY_EMOJIS[category] || '🍲';
-            const isRecipeGroup = !CATEGORY_EMOJIS[category];
-            const isExpanded = Boolean(expandedCards[category]);
-            const isPinned = pinnedCategories.includes(category);
-            const isSelected = selectedCategories.includes(category);
-            const theme = KEEP_BG_COLORS[index % KEEP_BG_COLORS.length];
-            const checkedGroupCount = groupItems.filter((i) => i.isChecked).length;
-
-            return (
-              <Pressable
-                onLongPress={() => handleLongPressCard(category)}
-                onPress={() => {
-                  if (isSelectionMode) {
-                    toggleSelectCard(category);
-                  } else {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                    setActiveModalCategory(category);
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  backgroundColor: isSelected ? '#FEE2E2' : theme.bg,
-                  borderRadius: 18,
-                  borderWidth: isSelected ? 2 : 1,
-                  borderColor: isSelected ? '#EF4444' : isPinned ? '#0D9488' : theme.border,
-                  padding: 12,
-                  marginBottom: 10,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: isPinned ? 0.12 : 0.05,
-                  shadowRadius: 6,
-                  elevation: isPinned ? 4 : 2,
-                  position: 'relative',
-                }}
-              >
-                {/* Keep Note Card Header */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: 8,
-                    paddingBottom: 6,
-                    borderBottomWidth: 1,
-                    borderBottomColor: 'rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <View style={{ flex: 1, marginRight: 4 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={{ fontSize: 15, marginRight: 4 }}>{emoji}</Text>
-                      <Text
-                        style={{ fontSize: 13, fontWeight: '800', color: '#111827', flex: 1 }}
-                        numberOfLines={1}
-                      >
-                        {category}
-                      </Text>
-                    </View>
-                    <Text style={{ fontSize: 9, fontWeight: '700', color: theme.accent, marginTop: 1 }}>
-                      {isPinned ? '📌 Pinned · ' : ''}
-                      ({checkedGroupCount}/{groupItems.length})
-                    </Text>
-                  </View>
-
-                  {/* Pin & Select Controls */}
-                  {isSelectionMode ? (
-                    <View
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: 11,
-                        backgroundColor: isSelected ? '#EF4444' : 'rgba(255,255,255,0.8)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {isSelected ? (
-                        <CheckSquare size={14} color="#FFFFFF" strokeWidth={2.5} />
-                      ) : (
-                        <Square size={14} color="#9CA3AF" strokeWidth={2} />
-                      )}
-                    </View>
-                  ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <Pressable
-                        onPress={(e) => togglePinCategory(category, e)}
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 12,
-                          backgroundColor: isPinned ? '#0D9488' : 'rgba(255,255,255,0.7)',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Pin
-                          size={12}
-                          color={isPinned ? '#FFFFFF' : '#6B7280'}
-                          strokeWidth={2}
-                        />
-                      </Pressable>
-
-                      <View
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 12,
-                          backgroundColor: 'rgba(255,255,255,0.7)',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Maximize2 size={12} color={theme.accent} strokeWidth={2.5} />
-                      </View>
-                    </View>
-                  )}
-                </View>
-
-                {/* Items List Preview (3 Items) */}
-                <View>
-                  {groupItems.slice(0, 3).map((item) => (
-                    <Pressable
-                      key={item.id}
-                      onPress={() => {
-                        if (isSelectionMode) {
-                          toggleSelectCard(category);
-                        } else {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                          toggleItem(item.id);
-                        }
-                      }}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        paddingVertical: 5,
-                        opacity: item.isChecked ? 0.4 : 1,
-                      }}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 4 }}>
-                        {item.isChecked ? (
-                          <CheckSquare size={15} color={theme.accent} strokeWidth={2.5} />
-                        ) : (
-                          <Square size={15} color="#9CA3AF" strokeWidth={2} />
-                        )}
-                        <Text
-                          style={{
-                            fontSize: 12,
-                            fontWeight: '600',
-                            color: '#374151',
-                            marginLeft: 6,
-                            flex: 1,
-                            textDecorationLine: item.isChecked ? 'line-through' : 'none',
-                          }}
-                          numberOfLines={1}
-                        >
-                          {item.ingredientName}
-                        </Text>
-                      </View>
-
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          fontWeight: '800',
-                          color: theme.accent,
-                          backgroundColor: 'rgba(255,255,255,0.8)',
-                          paddingHorizontal: 5,
-                          paddingVertical: 2,
-                          borderRadius: 6,
-                        }}
-                      >
-                        {item.quantity} {item.unit}
-                      </Text>
-                    </Pressable>
-                  ))}
-
-                  {/* Show "+X more" button to open modal */}
-                  {groupItems.length > 3 && (
-                    <View style={{ paddingTop: 4, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: theme.accent }}>
-                        +{groupItems.length - 3} more items...
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </Pressable>
-            );
-          }}
+          renderItem={({ item: [category, groupItems], index }) => (
+            <ShoppingListCard
+              category={category}
+              items={groupItems}
+              index={index}
+              isPinned={pinnedCategories.includes(category)}
+              isSelected={selectedCategories.includes(category)}
+              isSelectionMode={isSelectionMode}
+              onLongPress={() => handleLongPressCard(category)}
+              onPressCard={() => {
+                if (isSelectionMode) {
+                  toggleSelectCard(category);
+                } else {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  setActiveModalCategory(category);
+                }
+              }}
+              onToggleSelect={() => toggleSelectCard(category)}
+              onTogglePin={(e) => togglePinCategory(category, e)}
+              onToggleItem={toggleItem}
+            />
+          )}
         />
       ))}
 
-      {/* ── Google Keep Full Note Modal ── */}
-      <Modal
-        visible={Boolean(activeModalCategory)}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setActiveModalCategory(null)}
-      >
-        <SafeAreaView className="flex-1 bg-gray-50">
-          {/* Modal Header */}
-          <View className="px-5 pt-3 pb-3 border-b border-gray-100 bg-white flex-row items-center justify-between">
-            <View className="flex-row items-center flex-1 mr-3">
-              <Text className="text-2xl mr-2">{modalEmoji}</Text>
-              <View className="flex-1">
-                <Text className="text-lg font-black text-gray-900" numberOfLines={1}>
-                  {activeModalCategory}
-                </Text>
-                <Text className="text-xs text-teal-600 font-bold">
-                  {modalCheckedCount} of {modalItems.length} items checked ({modalProgressPercent}%)
-                </Text>
-              </View>
-            </View>
-
-            <View className="flex-row items-center gap-2">
-              {activeModalCategory && (
-                <Pressable
-                  onPress={() => handleDeleteSingleCategory(activeModalCategory)}
-                  className="w-9 h-9 rounded-full bg-red-50 items-center justify-center"
-                >
-                  <Trash2 size={16} color="#EF4444" strokeWidth={2} />
-                </Pressable>
-              )}
-              <Pressable
-                onPress={() => setActiveModalCategory(null)}
-                className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
-              >
-                <X size={18} color="#374151" strokeWidth={2.5} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Progress Bar */}
-          <View className="h-1.5 bg-gray-200 w-full">
-            <View
-              style={{ width: `${modalProgressPercent}%` }}
-              className="h-full bg-teal-600"
-            />
-          </View>
-
-          {/* Add item to this note inside modal */}
-          <View className="p-4 bg-white border-b border-gray-100 flex-row gap-2 items-center">
-            <TextInput
-              placeholder={`Add ingredient to ${activeModalCategory}...`}
-              placeholderTextColor="#9CA3AF"
-              value={modalItemName}
-              onChangeText={setModalItemName}
-              className="flex-1 bg-gray-100 rounded-xl px-3.5 py-2.5 text-sm color-gray-900 font-medium"
-            />
-            <Pressable
-              onPress={handleAddModalItem}
-              className="w-10 h-10 rounded-xl bg-teal-600 items-center justify-center"
-            >
-              <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
-            </Pressable>
-          </View>
-
-          {/* Modal Items List */}
-          <ScrollView
-            contentContainerStyle={{ padding: 16, gap: 10 }}
-            showsVerticalScrollIndicator={false}
-          >
-            {modalItems.map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                  toggleItem(item.id);
-                }}
-                className={`flex-row items-center justify-between p-3.5 bg-white rounded-2xl border border-gray-200 shadow-sm ${
-                  item.isChecked ? 'opacity-40' : 'opacity-100'
-                }`}
-              >
-                <View className="flex-row items-center flex-1 mr-3">
-                  {item.isChecked ? (
-                    <CheckSquare size={22} color="#0D9488" strokeWidth={2.5} />
-                  ) : (
-                    <Square size={22} color="#9CA3AF" strokeWidth={2} />
-                  )}
-                  <Text
-                    className={`text-base font-bold ml-3 color-gray-900 flex-1 ${
-                      item.isChecked ? 'line-through text-gray-400' : ''
-                    }`}
-                  >
-                    {item.ingredientName}
-                  </Text>
-                </View>
-
-                <View className="bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100">
-                  <Text className="text-xs font-black text-teal-700">
-                    {item.quantity} {item.unit}
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
+      {/* Category Modal */}
+      <CategoryModal
+        category={activeModalCategory}
+        items={modalItems}
+        modalItemName={modalItemName}
+        onClose={() => setActiveModalCategory(null)}
+        onDeleteCategory={handleDeleteSingleCategory}
+        onAddItem={handleAddModalItem}
+        onChangeItemName={setModalItemName}
+        onToggleItem={toggleItem}
+      />
     </SafeAreaView>
   );
 }

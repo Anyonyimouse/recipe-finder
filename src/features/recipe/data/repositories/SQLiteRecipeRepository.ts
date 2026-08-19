@@ -183,72 +183,74 @@ export class SQLiteRecipeRepository implements RecipeRepository {
     const recipeId = recipe.idMeal.startsWith('online-') ? recipe.idMeal : `online-${recipe.idMeal}`;
     const now = new Date().toISOString();
 
-    await db.execAsync('PRAGMA foreign_keys = OFF;');
-    try {
-      // 1. Save main recipe row
-      await db.runAsync(
-        `INSERT OR REPLACE INTO recipes (id, title, description, image_url, prep_time, cook_time, servings, difficulty, category_id, cuisine, meal_type, calories, created_at, updated_at)
-         VALUES (?, ?, ?, ?, 15, 20, 4, 'Easy', NULL, ?, ?, 450, ?, ?)`,
-        [
-          recipeId,
-          recipe.strMeal,
-          `Authentic ${recipe.strArea || 'International'} ${recipe.strCategory || 'Dishes'} recipe`,
-          recipe.strMealThumb,
-          recipe.strArea || 'International',
-          recipe.strCategory || 'General',
-          now,
-          now,
-        ]
-      );
+    await db.withTransactionAsync(async () => {
+      await db.execAsync('PRAGMA foreign_keys = OFF;');
+      try {
+        // 1. Save main recipe row
+        await db.runAsync(
+          `INSERT OR REPLACE INTO recipes (id, title, description, image_url, prep_time, cook_time, servings, difficulty, category_id, cuisine, meal_type, calories, created_at, updated_at)
+           VALUES (?, ?, ?, ?, 15, 20, 4, 'Easy', NULL, ?, ?, 450, ?, ?)`,
+          [
+            recipeId,
+            recipe.strMeal,
+            `Authentic ${recipe.strArea || 'International'} ${recipe.strCategory || 'Dishes'} recipe`,
+            recipe.strMealThumb,
+            recipe.strArea || 'International',
+            recipe.strCategory || 'General',
+            now,
+            now,
+          ]
+        );
 
-      // 2. Save ingredients & recipe_ingredients
-      if (recipe.ingredients && recipe.ingredients.length > 0) {
-        for (const ing of recipe.ingredients) {
-          const cleanName = ing.name.trim();
-          if (!cleanName) continue;
-          const ingId = `ing-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+        // 2. Save ingredients & recipe_ingredients
+        if (recipe.ingredients && recipe.ingredients.length > 0) {
+          for (const ing of recipe.ingredients) {
+            const cleanName = ing.name.trim();
+            if (!cleanName) continue;
+            const ingId = `ing-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
 
-          await db.runAsync(
-            'INSERT OR IGNORE INTO ingredients (id, name, image_url, category) VALUES (?, ?, ?, ?)',
-            [ingId, cleanName, `https://www.themealdb.com/images/ingredients/${encodeURIComponent(cleanName)}-Small.png`, 'General']
-          );
-
-          await db.runAsync(
-            'INSERT OR REPLACE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES (?, ?, ?, ?)',
-            [recipeId, ingId, 1, ing.measure || '']
-          );
-        }
-      }
-
-      // 3. Save recipe_steps
-      await db.runAsync('DELETE FROM recipe_steps WHERE recipe_id = ?', [recipeId]);
-
-      if (recipe.strInstructions) {
-        const steps = recipe.strInstructions
-          .split(/\r?\n|\r/)
-          .map((s) => s.trim())
-          .filter(Boolean);
-
-        let stepNum = 1;
-        for (const stepText of steps) {
-          const cleaned = stepText.replace(/^STEP\s*\d+[:.]?\s*/i, '').replace(/^\d+[:.]\s*/, '').trim();
-          if (cleaned.length > 3) {
             await db.runAsync(
-              'INSERT INTO recipe_steps (recipe_id, step_number, instruction) VALUES (?, ?, ?)',
-              [recipeId, stepNum++, cleaned]
+              'INSERT OR IGNORE INTO ingredients (id, name, image_url, category) VALUES (?, ?, ?, ?)',
+              [ingId, cleanName, `https://www.themealdb.com/images/ingredients/${encodeURIComponent(cleanName)}-Small.png`, 'General']
+            );
+
+            await db.runAsync(
+              'INSERT OR REPLACE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES (?, ?, ?, ?)',
+              [recipeId, ingId, 1, ing.measure || '']
             );
           }
         }
-      }
 
-      // 4. Add to favorites table
-      await db.runAsync(
-        'INSERT OR IGNORE INTO favorites (recipe_id, created_at) VALUES (?, ?)',
-        [recipeId, now]
-      );
-    } finally {
-      await db.execAsync('PRAGMA foreign_keys = ON;');
-    }
+        // 3. Save recipe_steps
+        await db.runAsync('DELETE FROM recipe_steps WHERE recipe_id = ?', [recipeId]);
+
+        if (recipe.strInstructions) {
+          const steps = recipe.strInstructions
+            .split(/\r?\n|\r/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          let stepNum = 1;
+          for (const stepText of steps) {
+            const cleaned = stepText.replace(/^STEP\s*\d+[:.]?\s*/i, '').replace(/^\d+[:.]\s*/, '').trim();
+            if (cleaned.length > 3) {
+              await db.runAsync(
+                'INSERT INTO recipe_steps (recipe_id, step_number, instruction) VALUES (?, ?, ?)',
+                [recipeId, stepNum++, cleaned]
+              );
+            }
+          }
+        }
+
+        // 4. Add to favorites table
+        await db.runAsync(
+          'INSERT OR IGNORE INTO favorites (recipe_id, created_at) VALUES (?, ?)',
+          [recipeId, now]
+        );
+      } finally {
+        await db.execAsync('PRAGMA foreign_keys = ON;');
+      }
+    });
   }
 
   async isRecipeDownloaded(idMeal: string): Promise<boolean> {

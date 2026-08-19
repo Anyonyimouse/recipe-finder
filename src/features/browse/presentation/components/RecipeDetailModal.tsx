@@ -6,6 +6,7 @@ import {
   Pressable,
   Modal,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -23,7 +24,6 @@ import {
   ShoppingBag,
   Check,
 } from 'lucide-react-native';
-import { StatusBar } from 'react-native';
 import { OnlineRecipe } from '../../types';
 import { getYouTubeVideoId, getYouTubeHtml, parseInstructions } from '../../utils';
 import { NutritionCard } from '../../../nutrition/presentation/components/NutritionCard';

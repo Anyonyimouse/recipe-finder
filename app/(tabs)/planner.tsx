@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { Calendar as CalendarIcon, ChefHat, Clock, Compass, Home as HomeIcon, Plus, Trash2, Utensils, X, Search, Globe } from 'lucide-react-native';
+import { ChefHat, Compass, Home as HomeIcon, X, Search } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,6 +19,8 @@ import { getRecipeImageSource } from '../../src/constants/recipeImages';
 import { fetchOnlineRecipesUseCase } from '../../src/features/browse/di/BrowseContainer';
 import { OnlineRecipe } from '../../src/features/browse/types';
 import { useMealPlanner } from '../../src/features/meal_planner/presentation/hooks/useMealPlanner';
+import { MealPlanCalendarHeader } from '../../src/features/meal_planner/presentation/components/MealPlanCalendarHeader';
+import { MealPlanDayCard } from '../../src/features/meal_planner/presentation/components/MealPlanDayCard';
 import { recipeRepository } from '../../src/features/recipe/di/RecipeContainer';
 import { useRecipeSearch } from '../../src/features/recipe/presentation/hooks/useRecipeSearch';
 import { Recipe } from '../../src/types/recipe';
@@ -104,73 +106,27 @@ export default function MealPlannerScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
       {/* Header */}
-      <View className="bg-gray-50 px-5 pt-3 pb-3 border-b border-black/5 z-10">
-        <Text className="text-2xl font-black text-slate-900 tracking-tight">Meal Planner</Text>
-        <Text className="text-xs text-gray-500 font-medium mt-0.5">
+      <View style={{ backgroundColor: '#F9FAFB', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)', zIndex: 10 }}>
+        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A', letterSpacing: -0.5 }}>Meal Planner</Text>
+        <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '500', marginTop: 2 }}>
           Schedule your recipes for the week
         </Text>
       </View>
 
       {/* Date Selector Row */}
-      <View className="bg-white py-3 border-b border-gray-100">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingLeft: 16, paddingRight: 16, gap: 10 }}
-        >
-          {weekDays.map((d) => {
-            const isSelected = selectedDate === d.isoString;
-            return (
-              <Pressable
-                key={d.isoString}
-                onPress={() => {
-                  Haptics.selectionAsync().catch(() => {});
-                  setSelectedDate(d.isoString);
-                }}
-                style={{
-                  width: 56,
-                  height: 64,
-                  borderRadius: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 1,
-                  backgroundColor: isSelected ? '#0D9488' : '#F9FAFB',
-                  borderColor: isSelected ? '#0D9488' : '#E5E7EB',
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    textTransform: 'uppercase',
-                    color: isSelected ? '#CCFBF1' : '#9CA3AF',
-                  }}
-                >
-                  {d.dayName}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: '900',
-                    marginTop: 2,
-                    color: isSelected ? '#FFFFFF' : '#1F2937',
-                  }}
-                >
-                  {d.dayNum}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
+      <MealPlanCalendarHeader
+        weekDays={weekDays}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+      />
 
       {/* Plan Slots */}
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color="#0D9488" />
         </View>
       ) : (
@@ -180,90 +136,14 @@ export default function MealPlannerScreen() {
         >
           {MEAL_TYPES.map((type) => {
             const typePlans = plans.filter((p) => p.mealType === type);
-
             return (
-              <View
+              <MealPlanDayCard
                 key={type}
-                className="mb-5 bg-white rounded-2xl p-4 border border-gray-200 shadow-sm"
-              >
-                <View className="flex-row items-center justify-between mb-3">
-                  <View className="flex-row items-center gap-2">
-                    <View className="w-7 h-7 rounded-lg bg-teal-50 items-center justify-center">
-                      <Utensils size={14} color="#0D9488" strokeWidth={2.5} />
-                    </View>
-                    <Text className="text-base font-extrabold text-gray-900">{type}</Text>
-                  </View>
-
-                  <Pressable
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                      setPickerMealType(type);
-                    }}
-                    className="flex-row items-center gap-1 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full"
-                  >
-                    <Plus size={13} color="#0D9488" strokeWidth={2.5} />
-                    <Text className="text-xs font-extrabold text-teal-700">Add Recipe</Text>
-                  </Pressable>
-                </View>
-
-                {typePlans.length === 0 ? (
-                  <Pressable
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                      setPickerMealType(type);
-                    }}
-                    className="py-4 border border-dashed border-gray-200 rounded-xl items-center justify-center bg-gray-50/50"
-                  >
-                    <Text className="text-xs text-teal-600 font-bold">+ Tap to plan {type}</Text>
-                  </Pressable>
-                ) : (
-                  typePlans.map((plan) => {
-                    const img = getRecipeImageSource(plan.recipeId, plan.imageUrl);
-                    return (
-                      <View
-                        key={plan.id}
-                        className="flex-row items-center bg-gray-50 rounded-xl p-2.5 mb-2 border border-gray-100 justify-between"
-                      >
-                        <View className="flex-row items-center flex-1 mr-2">
-                          {img ? (
-                            <Image source={img} className="w-12 h-12 rounded-lg mr-3" />
-                          ) : (
-                            <View className="w-12 h-12 rounded-lg bg-teal-100 items-center justify-center mr-3">
-                              <ChefHat size={20} color="#0D9488" />
-                            </View>
-                          )}
-                          <View className="flex-1">
-                            <Text
-                              className="text-sm font-bold text-gray-800 leading-4"
-                              numberOfLines={1}
-                            >
-                              {plan.recipeTitle || 'Planned Recipe'}
-                            </Text>
-                            {(plan.prepTime || plan.cookTime) ? (
-                              <View className="flex-row items-center mt-1">
-                                <Clock size={11} color="#9CA3AF" />
-                                <Text className="text-[11px] text-gray-400 font-medium ml-1">
-                                  {(plan.prepTime || 0) + (plan.cookTime || 0)} mins
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-                        </View>
-
-                        <Pressable
-                          onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                            removePlan(plan.id);
-                          }}
-                          className="p-2 rounded-lg bg-red-50"
-                        >
-                          <Trash2 size={15} color="#EF4444" strokeWidth={2} />
-                        </Pressable>
-                      </View>
-                    );
-                  })
-                )}
-              </View>
+                mealType={type}
+                plans={typePlans}
+                onAddRecipe={(t) => setPickerMealType(t)}
+                onRemovePlan={removePlan}
+              />
             );
           })}
         </ScrollView>
@@ -276,24 +156,24 @@ export default function MealPlannerScreen() {
         transparent={false}
         onRequestClose={() => setPickerMealType(null)}
       >
-        <SafeAreaView className="flex-1 bg-gray-50">
-          <View className="px-5 pt-3 pb-3 border-b border-gray-100 bg-white flex-row items-center justify-between">
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <View>
-              <Text className="text-xl font-extrabold text-gray-900">
+              <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827' }}>
                 Plan {pickerMealType}
               </Text>
-              <Text className="text-xs text-gray-400">Select a recipe for {selectedDate}</Text>
+              <Text style={{ fontSize: 12, color: '#9CA3AF' }}>Select a recipe for {selectedDate}</Text>
             </View>
             <Pressable
               onPress={() => setPickerMealType(null)}
-              className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}
             >
               <X size={18} color="#374151" strokeWidth={2.5} />
             </Pressable>
           </View>
 
           {/* Local vs MealDB Online Tab Switcher */}
-          <View className="flex-row p-3 bg-white border-b border-gray-100 gap-2">
+          <View style={{ flexDirection: 'row', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6', gap: 8 }}>
             <Pressable
               onPress={() => setPickerTab('local')}
               style={{
@@ -307,6 +187,7 @@ export default function MealPlannerScreen() {
                 backgroundColor: pickerTab === 'local' ? '#F0FDF9' : '#F3F4F6',
                 borderWidth: 1,
                 borderColor: pickerTab === 'local' ? '#99F6E4' : 'transparent',
+                minHeight: 48,
               }}
             >
               <HomeIcon size={16} color={pickerTab === 'local' ? '#0D9488' : '#6B7280'} />
@@ -334,6 +215,7 @@ export default function MealPlannerScreen() {
                 backgroundColor: pickerTab === 'online' ? '#F0FDF9' : '#F3F4F6',
                 borderWidth: 1,
                 borderColor: pickerTab === 'online' ? '#99F6E4' : 'transparent',
+                minHeight: 48,
               }}
             >
               <Compass size={16} color={pickerTab === 'online' ? '#0D9488' : '#6B7280'} />
@@ -350,22 +232,22 @@ export default function MealPlannerScreen() {
           </View>
 
           {/* Search bar */}
-          <View className="p-4 bg-white border-b border-gray-100">
-            <View className="bg-gray-100 rounded-xl flex-row items-center px-3 py-2">
+          <View style={{ padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
+            <View style={{ backgroundColor: '#F3F4F6', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 }}>
               <Search size={16} color="#9CA3AF" />
               <TextInput
                 placeholder={pickerTab === 'local' ? 'Search local recipes...' : 'Search MealDB online recipes...'}
                 placeholderTextColor="#9CA3AF"
                 value={pickerSearch}
                 onChangeText={setPickerSearch}
-                className="flex-1 ml-2 text-sm text-gray-900 font-medium py-1"
+                style={{ flex: 1, marginLeft: 8, fontSize: 14, color: '#111827', fontWeight: '500', paddingVertical: 4 }}
               />
             </View>
           </View>
 
           {/* MealDB Categories & Cuisines Pills (when in Online tab) */}
           {pickerTab === 'online' && (
-            <View className="bg-white pb-3 border-b border-gray-100">
+            <View style={{ backgroundColor: '#FFFFFF', paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
               {/* Categories */}
               <ScrollView
                 horizontal
@@ -388,6 +270,7 @@ export default function MealPlannerScreen() {
                         backgroundColor: isSelected ? '#0D9488' : '#F3F4F6',
                         borderWidth: 1,
                         borderColor: isSelected ? '#0D9488' : 'transparent',
+                        minHeight: 36,
                       }}
                     >
                       <Text style={{ fontSize: 12, fontWeight: '700', color: isSelected ? '#FFFFFF' : '#4B5563' }}>
@@ -420,6 +303,7 @@ export default function MealPlannerScreen() {
                         backgroundColor: isSelected ? '#0F766E' : '#F3F4F6',
                         borderWidth: 1,
                         borderColor: isSelected ? '#0F766E' : 'transparent',
+                        minHeight: 36,
                       }}
                     >
                       <Text style={{ fontSize: 12, fontWeight: '700', color: isSelected ? '#FFFFFF' : '#4B5563' }}>
@@ -435,7 +319,7 @@ export default function MealPlannerScreen() {
           {/* Local Tab List */}
           {pickerTab === 'local' ? (
             isLocalLoading ? (
-              <View className="flex-1 items-center justify-center">
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="large" color="#0D9488" />
               </View>
             ) : (
@@ -448,25 +332,25 @@ export default function MealPlannerScreen() {
                   return (
                     <Pressable
                       onPress={() => handleSelectLocalRecipe(item)}
-                      className="flex-row items-center bg-white p-3 rounded-2xl border border-gray-200 shadow-sm"
+                      style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', minHeight: 64 }}
                     >
                       {img ? (
-                        <Image source={img} className="w-14 h-14 rounded-xl mr-3" />
+                        <Image source={img} style={{ width: 56, height: 56, borderRadius: 12, marginRight: 12 }} />
                       ) : (
-                        <View className="w-14 h-14 rounded-xl bg-teal-50 items-center justify-center mr-3">
+                        <View style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: '#F0FDF9', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
                           <ChefHat size={24} color="#0D9488" />
                         </View>
                       )}
-                      <View className="flex-1">
-                        <Text className="text-base font-bold text-gray-900 leading-5" numberOfLines={1}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#111827' }} numberOfLines={1}>
                           {item.title}
                         </Text>
-                        <Text className="text-xs text-gray-400 mt-1 font-medium">
+                        <Text style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4, fontWeight: '500' }}>
                           ⏱ {item.prepTime + item.cookTime} mins · {item.difficulty}
                         </Text>
                       </View>
-                      <View className="bg-teal-600 px-3 py-1.5 rounded-full">
-                        <Text className="text-xs font-bold text-white">Select</Text>
+                      <View style={{ backgroundColor: '#0D9488', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50 }}>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>Select</Text>
                       </View>
                     </Pressable>
                   );
@@ -476,9 +360,9 @@ export default function MealPlannerScreen() {
           ) : (
             /* Online Tab List */
             isOnlineLoading ? (
-              <View className="flex-1 items-center justify-center">
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="large" color="#0D9488" />
-                <Text className="text-xs text-gray-400 mt-2 font-medium">Loading MealDB recipes...</Text>
+                <Text style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8, fontWeight: '500' }}>Loading MealDB recipes...</Text>
               </View>
             ) : (
               <FlatList
@@ -488,19 +372,19 @@ export default function MealPlannerScreen() {
                 renderItem={({ item }) => (
                   <Pressable
                     onPress={() => handleSelectOnlineRecipe(item)}
-                    className="flex-row items-center bg-white p-3 rounded-2xl border border-gray-200 shadow-sm"
+                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', minHeight: 64 }}
                   >
-                    <Image source={{ uri: item.strMealThumb }} className="w-14 h-14 rounded-xl mr-3" />
-                    <View className="flex-1">
-                      <Text className="text-base font-bold text-gray-900 leading-5" numberOfLines={1}>
+                    <Image source={{ uri: item.strMealThumb }} style={{ width: 56, height: 56, borderRadius: 12, marginRight: 12 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: '#111827' }} numberOfLines={1}>
                         {item.strMeal}
                       </Text>
-                      <Text className="text-xs text-teal-600 mt-1 font-semibold">
+                      <Text style={{ fontSize: 12, color: '#0D9488', marginTop: 4, fontWeight: '600' }}>
                         🌐 {item.strArea} · {item.strCategory}
                       </Text>
                     </View>
-                    <View className="bg-teal-600 px-3 py-1.5 rounded-full">
-                      <Text className="text-xs font-bold text-white">Plan Recipe</Text>
+                    <View style={{ backgroundColor: '#0D9488', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>Plan Recipe</Text>
                     </View>
                   </Pressable>
                 )}
